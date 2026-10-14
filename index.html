@@ -589,6 +589,8 @@ img.complogo.lchip{background:#fff;border-radius:6px;padding:2px 5px;box-sizing:
 .lsel{display:flex;align-items:center;gap:10px;text-align:left;width:100%;border:1px solid var(--ov-line);border-radius:10px;padding:8px 10px;background:var(--ov-card)}
 .lsel div{display:flex;flex-direction:column} .lsel b{color:#fff;font-size:15px} .lsel span{font-size:12.5px;color:var(--ov-ink-2)}
 .legend{max-width:460px}
+.autopos{display:flex;flex-direction:column;gap:2px;border:1px solid var(--accent);background:var(--accent-soft);border-radius:10px;padding:9px 12px}
+.autopos .pos b{font-size:16px}
 </style>
 
 </head>
@@ -762,7 +764,7 @@ const SFX={
 const sfx=(k,...a)=>{try{if(soundOn&&ac())SFX[k](...a)}catch(e){}};
 
 /* ================= state ================= */
-const APP_VER='0.13';
+const APP_VER='0.14';
 let setOpen=false, howOpen=false, quitArm=false;
 let diceFast=(()=>{try{return localStorage.getItem('rpglass-dice')==='fast'}catch(e){return false}})();
 let allSpd=(()=>{try{return localStorage.getItem('rpglass-allspd')||'f'}catch(e){return'f'}})();
@@ -833,14 +835,21 @@ const seasonLine=s=>s.gp?{ppg:s.pts/s.gp,rpg:s.reb/s.gp,apg:s.ast/s.gp}:{ppg:0,r
 function finalScore(ok,diff){const lg=L(),mar=clamp(Math.round(Math.abs(diff)*1.4+d(9)),1,S.lg==='nba'?31:24),w=lg.pts-6+d(14)+Math.round(mar/3),l=w-mar;return ok?[w,l]:[l,w]}
 
 /* ================= creation ================= */
+/* height first, then the position that fits your height and your best attributes */
+const HT_RANGE={nba:[72,87],wnba:[66,80]};
+function heightIn(cr){if(!cr.hd)return null;const [lo,hi]=HT_RANGE[cr.lg];return lo+Math.round((cr.hd-1)/9*(hi-lo))}
+function htFit(pos,h,lg){const [lo,hi]=POS[pos].ht[lg];return h<lo?lo-h:h>hi?h-hi:0}
+function posScores(cr){const h=heightIn(cr);return Object.keys(POS).map(k=>{const p=POS[k],att=p.k.reduce((t,x)=>t+(cr.rolls[x]||0),0),fit=htFit(k,h,cr.lg),[lo,hi]=p.ht[cr.lg];
+  return {k,att,fit,score:att-1.5*fit-Math.abs(h-(lo+hi)/2)*.05}}).sort((x,y)=>y.score-x.score)}
+const autoPos=cr=>posScores(cr)[0].k;
+function htMod(cr){if(!cr.pos||!cr.hd)return 0;const h=heightIn(cr),[lo,hi]=POS[cr.pos].ht[cr.lg],rel=(h-lo)/Math.max(1,hi-lo);return rel<.3?-1:rel>.7?(h>hi?2:1):0}
 function crAttrs(cr){
   const a={};AK.forEach(k=>a[k]=cr.rolls[k]||0);
   if(cr.pos)Object.entries(POS[cr.pos].bon).forEach(([k,v])=>a[k]+=v);
-  if(cr.hd){const h=cr.hd;if(h<=3){a.ath++;a.ply++;a.reb--}else if(h>=8){a.reb++;a.def++;a.ath--;if(h===10)a.fin++}}
+  const hm=htMod(cr); if(hm<0){a.ath++;a.ply++;a.reb--}else if(hm>0){a.reb++;a.def++;a.ath--;if(hm===2)a.fin++}
   if(cr.pos&&cr.style){const st=STYLES[cr.pos].find(s=>s[0]===cr.style);st[2].forEach(k=>a[k]++)}
   AK.forEach(k=>a[k]=clamp(a[k],1,20));return a;
 }
-function heightIn(cr){if(!cr.pos||!cr.hd)return null;const [lo,hi]=POS[cr.pos].ht[cr.lg];return lo+Math.round((cr.hd-1)/9*(hi-lo))}
 const allRolled=cr=>AK.every(k=>cr.rolls[k]);
 
 /* ================= career ================= */
@@ -1514,23 +1523,29 @@ function draftCard(){
     <div class="st-act"><button class="btn" data-act="rookie">Start rookie season</button></div></div>`;
 }
 function createCard(){
-  const cr=S.cr, a=crAttrs(cr), hin=heightIn(cr), ready=cr.pos&&cr.hd&&allRolled(cr)&&cr.style, posB=cr.pos?POS[cr.pos].bon:{};
-  const pos=Object.entries(POS).map(([k,p])=>{const [lo,hi]=p.ht[cr.lg];return `<button class="pickbtn" data-act="pos" data-v="${k}" aria-pressed="${cr.pos===k}" ${cr.hd&&cr.pos!==k?'disabled':''}><b>${k}</b><span class="lbl">${fmtH(lo)}–${fmtH(hi)}</span></button>`}).join('');
-  const hb=cr.hd?cr.hd<=3?'Quick and shifty: ATH +1, PLY +1, REB −1':cr.hd>=8?`Length: REB +1, DEF +1, ATH −1${cr.hd===10?', FIN +1':''}`:'Standard frame for the position':'Taller rolls help on the glass, shorter rolls add speed.';
-  const dice=AK.map(k=>{const v=cr.rolls[k],b=(posB[k]||0);return `<button class="dbtn" data-act="attr" data-v="${k}" ${v||!cr.hd?'disabled':''}>${dieSVG(10,v||'?',v?dieCls(10)(v):'','a-'+k)}<span class="lbl">${A3[k]}</span><span class="dv num">${v?`${a[k]}${b?` (+${b})`:''}`:b?`+${b}`:''}</span></button>`}).join('');
-  const styles=cr.pos&&allRolled(cr)?`<div class="cr-sec"><span class="lbl">Playstyle</span><div class="styles">${STYLES[cr.pos].map(s=>`<button class="stylebtn" data-act="style" data-v="${s[0]}" aria-pressed="${cr.style===s[0]}"><b>${s[1]}</b><span>${s[4]}</span><i>${s[2].map(k=>A3[k]+' +1').join(' · ')}</i></button>`).join('')}</div></div>`:'';
+  const cr=S.cr, done=cr.hd&&allRolled(cr); if(!done){cr.pos=null;cr.style=null}else if(!cr.pos)cr.pos=autoPos(cr);
+  const a=crAttrs(cr), hin=heightIn(cr), ready=cr.pos&&done&&cr.style, posB=cr.pos?POS[cr.pos].bon:{};
+  const hm=htMod(cr), hb=!cr.hd?'Short players are quicker, tall ones own the glass. Your height and your attributes decide your position.'
+    :!cr.pos?`${cr.hd<=3?'On the short side':cr.hd>=8?'On the tall side':'Average height'} for the ${LG[cr.lg].nm}.`
+    :hm<0?`Small for a ${POS[cr.pos].nm.toLowerCase()}: ATH +1, PLY +1, REB −1`:hm>0?`Long for a ${POS[cr.pos].nm.toLowerCase()}: REB +1, DEF +1, ATH −1${hm===2?', FIN +1':''}`:`A standard frame for a ${POS[cr.pos].nm.toLowerCase()}.`;
+  const dice=AK.map(k=>{const v=cr.rolls[k],b=(posB[k]||0);return `<button class="dbtn" data-act="attr" data-v="${k}" ${v?'disabled':''}>${dieSVG(10,v||'?',v?dieCls(10)(v):'','a-'+k)}<span class="lbl">${A3[k]}</span><span class="dv num">${v?`${a[k]}${b?` (+${b})`:''}`:''}</span></button>`}).join('');
+  let posH='';
+  if(cr.pos){const sc=posScores(cr),P=POS[cr.pos],[lo,hi]=P.ht[cr.lg],alt=sc[1];
+    posH=`<div class="cr-sec"><span class="lbl">Position · picked for you</span><div class="autopos"><span class="pos"><span class="ab">${cr.pos}</span><b>${P.nm}</b></span>
+      <span class="muted small">${fmtH(lo)}–${fmtH(hi)} range · best at ${P.k.map(k=>AN[k]).join(', ')} · bonus ${Object.entries(P.bon).map(([k,v])=>`${A3[k]} +${v}`).join(', ')}</span>
+      <span class="muted small">Next best fit: ${POS[alt.k].nm}</span></div></div>`}
+  const styles=cr.pos?`<div class="cr-sec"><span class="lbl">Playstyle</span><div class="styles">${STYLES[cr.pos].map(s=>`<button class="stylebtn" data-act="style" data-v="${s[0]}" aria-pressed="${cr.style===s[0]}"><b>${s[1]}</b><span>${s[4]}</span><i>${s[2].map(k=>A3[k]+' +1').join(' · ')}</i></button>`).join('')}</div></div>`:'';
   const o=cr.pos?ovrOf(a,cr.pos,cr.style):null;
   return `<div class="cr">
     <div class="cr-sec"><span class="lbl">New career</span><div class="row" style="flex-wrap:nowrap">
       <div class="subtabs" role="group" aria-label="League"><button data-act="lg" data-v="nba" aria-pressed="${cr.lg==='nba'}">${compImg('NBA',18)}NBA</button><button data-act="lg" data-v="wnba" aria-pressed="${cr.lg==='wnba'}">${compImg('WNBA',18)}WNBA</button></div>
       <input type="text" id="pname" value="${esc(cr.name)}" maxlength="28" aria-label="Player name" autocomplete="off">
       <button class="btn ghost sm" data-act="rname" aria-label="Random name" title="Random name">⟳</button></div></div>
-    <div class="cr-sec"><span class="lbl">Position</span><div class="picks">${pos}</div></div>
-    ${cr.pos?`<div class="cr-sec"><span class="lbl">Height</span><div class="hrow2"><button class="dbtn" data-act="height" ${cr.hd?'disabled':''}>${dieSVG(10,cr.hd||'?',cr.hd?dieCls(10)(cr.hd):'','hd')}</button>
-      <div class="stack" style="gap:0;min-width:0"><b class="num" style="font-size:20px">${hin?`${fmtH(hin)} · ${cm(hin)} cm`:'Roll your height'}</b><span class="muted small">${hb}</span></div></div></div>`:''}
-    ${cr.hd?`<div class="cr-sec"><div class="row" style="justify-content:space-between"><span class="lbl">Attributes · d10 each, tap to roll</span>${allRolled(cr)?'':`<button class="btn ghost sm" data-act="rollall">Roll all</button>`}</div><div class="cdice">${dice}</div></div>`:''}
-    ${styles}
-    <div class="cr-foot"><div class="stack" style="gap:0"><span class="lbl">Prospect grade</span><b class="num" style="font-size:22px">${o&&allRolled(cr)?o+' OVR':'—'}</b></div>
+    <div class="cr-sec"><span class="lbl">Height · d10</span><div class="hrow2"><button class="dbtn" data-act="height" ${cr.hd?'disabled':''}>${dieSVG(10,cr.hd||'?',cr.hd?dieCls(10)(cr.hd):'','hd')}</button>
+      <div class="stack" style="gap:0;min-width:0"><b class="num" style="font-size:20px">${hin?`${fmtH(hin)} · ${cm(hin)} cm`:'Roll your height'}</b><span class="muted small">${hb}</span></div></div></div>
+    <div class="cr-sec"><div class="row" style="justify-content:space-between"><span class="lbl">Attributes · d10 each, tap to roll</span>${allRolled(cr)?'':`<button class="btn ghost sm" data-act="rollall">Roll all</button>`}</div><div class="cdice">${dice}</div></div>
+    ${posH}${styles}
+    <div class="cr-foot"><div class="stack" style="gap:0"><span class="lbl">Prospect grade</span><b class="num" style="font-size:22px">${o?o+' OVR':'—'}</b></div>
       <button class="btn" data-act="enter" ${ready?'':'disabled'}>Enter the ${LG[cr.lg].nm} Draft</button></div>
   </div>`;
 }
@@ -2053,9 +2068,8 @@ function lbRoll(){
 }
 function onCreate(a,v){
   const cr=S.cr;
-  if(a==='lg'){cr.lg=v;cr.name=randName(v)}
+  if(a==='lg'){if(cr.lg!==v){cr.lg=v;cr.name=randName(v);cr.pos=null;cr.style=null}}
   else if(a==='rname')cr.name=randName(cr.lg);
-  else if(a==='pos'&&!cr.hd){cr.pos=v;cr.style=null}
   else if(a==='height'&&!cr.hd){const r=d(10);rollDice([document.querySelector('[data-die="hd"]')],10,[r],dieCls(10),()=>{cr.hd=r;save();render()});return}
   else if(a==='attr'&&!cr.rolls[v]){const r=d(10);rollDice([document.querySelector(`[data-die="a-${v}"]`)],10,[r],dieCls(10),()=>{cr.rolls[v]=r;save();render()});return}
   else if(a==='rollall'){const ks=AK.filter(k=>!cr.rolls[k]);const fin=ks.map(()=>d(10));rollDice(ks.map(k=>document.querySelector(`[data-die="a-${k}"]`)),10,fin,dieCls(10),()=>{ks.forEach((k,i)=>cr.rolls[k]=fin[i]);save();render()});return}
