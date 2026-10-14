@@ -615,6 +615,20 @@ svg.die{aspect-ratio:1/1}
 .stt .sttr{font-style:normal;color:#e2a93b}
 .stt tfoot td{color:var(--ink);font-weight:600;border-bottom:0;border-top:1px solid var(--rule-2)}
 @media (max-width:520px){.cvnums{grid-template-columns:repeat(5,1fr)}.cvnums b{font-size:15px}.spk-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.atr{grid-template-columns:80px minmax(0,1fr) 22px 28px}.pg-grid{gap:6px}}
+
+/* iPad: the grid gets an explicit height from fitGrid(); columns never scroll the page */
+:is(.ipadL,.ipadP) .onepage .wrap,:is(.ipadL,.ipadP).onepage .wrap{overflow:hidden}
+.ipgrid>.ipcol{height:100%;overflow:hidden}
+.ipgrid.fitp .ipcol>.cvp{flex:1 1 0;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.ipgrid.fitp .ipcol>.cvchart{flex:1.25 1 0}
+:is(.ipadL,.ipadP) .cvhead{gap:8px;padding-top:12px;padding-bottom:12px}
+:is(.ipadL,.ipadP) .cvhead h2{font-size:22px}
+.ipadL .cvnums{grid-template-columns:repeat(10,1fr)} .ipadL .cvnums b{font-size:16px}
+:is(.ipadL,.ipadP) .cvnums>div{padding:6px 10px}
+.cvc-h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.cvtabs{flex-wrap:wrap}.cvtabs button{font-size:12.5px;padding:4px 10px}
+.cvc-v{font-size:20px;font-weight:600}
+.cvc-plot{min-height:0}
 /* scouting report */
 .scout{border:1px solid var(--rule);border-radius:12px;padding:12px 14px;gap:8px;background:color-mix(in srgb,var(--accent) 5%,transparent)}
 .sc-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
@@ -993,7 +1007,7 @@ const SFX={
 const sfx=(k,...a)=>{try{if(soundOn&&ac())SFX[k](...a)}catch(e){}};
 
 /* ================= state ================= */
-const APP_VER='0.20';
+const APP_VER='0.21';
 let setOpen=false, howOpen=false, quitArm=false;
 let diceFast=(()=>{try{return localStorage.getItem('rpglass-dice')==='fast'}catch(e){return false}})();
 let allSpd=(()=>{try{return localStorage.getItem('rpglass-allspd')||'f'}catch(e){return'f'}})();
@@ -2076,10 +2090,17 @@ function careerView(){
     <div class="ch-note">Bold: career best · ★ champion season</div>`);
 
   /* charts */
-  const mini=(nm,k,fmt)=>`<div class="pg-m"><div class="pg-h"><span class="lbl">${nm}</span><b class="num">${f1(H[H.length-1][k])}</b></div>${chartLine(H.map(h=>+f1(h[k])),labels,{H:84,fmt:v=>f1(v).replace('.0',''),min:0,dots:H.length<=14})}</div>`;
-  const charts=panel('Rating',`${chartLine(H.map(h=>h.ovr),labels,{tip:i=>` · age ${H[i].age} · ${ROLES[H[i].role]}`,gold:H.map(h=>h.ring)})}<div class="ch-note"><i class="ch-dot"></i>Champion season</div>`)
-    +panel('Per game',`<div class="pg-grid">${mini('Points','ppg')}${mini('Rebounds','rpg')}${mini('Assists','apg')}</div>`)
-    +panel('Team win %',`${chartBars(H.map(h=>Math.round(100*h.w/Math.max(1,h.w+h.l))),labels,{max:100,ticks:[0,50,100],ref:50,fmt:v=>v+'%',gold:H.map(h=>h.ring),hl:H.map(h=>!/Missed|Play-In/.test(h.po)),tip:i=>` · ${H[i].w}–${H[i].l} · ${H[i].po}`})}<div class="ch-note"><i class="ch-sw"></i>Made the playoffs <i class="ch-dot"></i>Champions</div>`);
+  const CVM={ovr:['Rating',H.map(h=>h.ovr),{tip:i=>` · age ${H[i].age} · ${ROLES[H[i].role]}`,gold:H.map(h=>h.ring)}],
+    ppg:['Points',H.map(h=>+f1(h.ppg)),{min:0,fmt:v=>f1(v).replace('.0','')}],
+    rpg:['Rebounds',H.map(h=>+f1(h.rpg)),{min:0,fmt:v=>f1(v).replace('.0','')}],
+    apg:['Assists',H.map(h=>+f1(h.apg)),{min:0,fmt:v=>f1(v).replace('.0','')}],
+    win:['Win %',null]};
+  const cm=CVM[cvMetric]?cvMetric:'ovr';
+  const plot=cm==='win'?chartBars(H.map(h=>Math.round(100*h.w/Math.max(1,h.w+h.l))),labels,{max:100,ticks:[0,50,100],ref:50,fmt:v=>v+'%',gold:H.map(h=>h.ring),hl:H.map(h=>!/Missed|Play-In/.test(h.po)),tip:i=>` · ${H[i].w}–${H[i].l} · ${H[i].po}`})
+    :chartLine(CVM[cm][1],labels,{...CVM[cm][2],gold:H.map(h=>h.ring)});
+  const last=H[H.length-1], cur={ovr:last.ovr,ppg:f1(last.ppg),rpg:f1(last.rpg),apg:f1(last.apg),win:Math.round(100*last.w/Math.max(1,last.w+last.l))+'%'}[cm];
+  const charts=`<section class="panel cvp cvchart"><div class="cvc-h"><div class="subtabs cvtabs" role="group" aria-label="Chart">${Object.entries(CVM).map(([k,v])=>`<button data-act="cvm" data-v="${k}" aria-pressed="${k===cm}">${v[0]}</button>`).join('')}</div><b class="num cvc-v">${cur}</b></div>
+    <div class="cvc-plot">${plot}</div><div class="ch-note">${cm==='win'?'<i class="ch-sw"></i>Made the playoffs ':''}<i class="ch-dot"></i>Champion season</div></section>`;
 
   /* attributes */
   const A0=S.at0||(H[0]&&H[0].at)||null, keyset=new Set(POS[S.pos].k);
@@ -2094,7 +2115,7 @@ function careerView(){
   const cab=panel('Trophy cabinet',shelfI.length?`<div class="shelf">${shelfI.map(([g,n,l])=>`<div class="tro" title="${esc(l)}">${g}${n>1?`<b>×${n}</b>`:''}<span>${esc(l)}</span></div>`).join('')}</div>
     ${rings?`<div class="rings" style="margin-top:10px">${H.filter(h=>h.ring).map(h=>`<div class="rg" title="${esc(tName(h.team))} · ${lg.yl(h.yr)}">${ringSVG(h.team)}<span>${lg.yl(h.yr)}</span></div>`).join('')}</div>`:''}`:'<div class="muted small">Your trophies will live here.</div>');
   const recs=Object.entries(S.recs||{}), RL=RECS[S.lg];
-  const recH=recs.length?panel('All-time records you hold',`<div class="cabinet">${recs.map(([id,r])=>{const R=RL.find(x=>x[0]===id);return R?`<span class="cup ring" title="Previous: ${esc(R[2])}, ${fmtRec(R,R[3])}">${esc(R[1])} · ${fmtRec(R,r.v)}</span>`:''}).join('')}</div>`):'';
+  const recH=recs.length?panel('Records you hold',`<div class="cabinet">${recs.map(([id,r])=>{const R=RL.find(x=>x[0]===id);return R?`<span class="cup ring" title="Previous: ${esc(R[2])}, ${fmtRec(R,R[3])}">${esc(R[1])} · ${fmtRec(R,r.v)}</span>`:''}).join('')}</div>`):'';
 
   /* teams, best season, fans */
   const teams=panel('Teams',`<div class="stints">${stints.map(t=>`<div class="stint">${crest(t.team,34)}<b>${esc(short(t.team))}</b><span>${t.from===t.to?lg.yl(t.from):`${t.from}–${S.lg==='nba'?String(t.to+1).slice(2):String(t.to).slice(2)}`}</span><span>${t.n} season${t.n>1?'s':''}${t.rings?` · ${t.rings} ring${t.rings>1?'s':''}`:''}</span></div>`).join('')}</div>
@@ -2108,8 +2129,9 @@ function careerView(){
     <div class="sstats"><span class="lbl">PPG</span><span class="lbl">RPG</span><span class="lbl">APG</span><b>${f1(h.ppg)}</b><b>${f1(h.rpg)}</b><b>${f1(h.apg)}</b></div></div>`).join('');
   const seasons=panel('Season by season',`<div class="seasons">${rows}</div>`);
 
-  if(ipMode==='L')return head+`<div class="ipgrid cv3"><div class="ipcol sc">${charts}</div><div class="ipcol sc">${attrs}${statT}</div><div class="ipcol sc">${cab}${recH}${seasons}${teams}${fans}</div></div>`;
-  if(ipMode==='P')return head+`<div class="ipgrid ip2"><div class="ipcol sc">${charts}${attrs}</div><div class="ipcol sc">${cab}${recH}${statT}${seasons}${teams}${fans}</div></div>`;
+  const tf=`<section class="panel cvp">${teams.replace(/^<section class="panel cvp ">|<\/section>$/g,'')}<div style="height:12px"></div>${fans.replace(/^<section class="panel cvp ">|<\/section>$/g,'')}</section>`;
+  if(ipMode==='L')return head+`<div class="ipgrid cv3 fitp"><div class="ipcol">${charts}${attrs}</div><div class="ipcol">${statT}${seasons}</div><div class="ipcol">${cab}${recH}${tf}</div></div>`;
+  if(ipMode==='P')return head+`<div class="ipgrid ip2 fitp"><div class="ipcol">${charts}${attrs}${statT}</div><div class="ipcol">${cab}${recH}${seasons}${tf}</div></div>`;
   return `<div class="cvscroll">${head}${cab}${recH}${charts}${attrs}${statT}${seasons}${teams}${fans}</div>`;
 }
 /* tiny line for small multiples; shared y-domain across the set */
@@ -2415,9 +2437,12 @@ function overlay(){
   return c?`<div class="ovl" role="dialog" aria-modal="true">${c}</div>`:'';
 }
 
-let ipMode='';
+let ipMode='', cvMetric='ovr';
 function calcIpad(){try{const w=innerWidth,h=innerHeight;return (w>=1000&&h>=600&&w>h)?'L':(w>=740&&h>=860&&h>w)?'P':''}catch(e){return''}}
-addEventListener('resize',()=>{if(calcIpad()!==ipMode)render()});
+function fitGrid(){const g=document.querySelector('.ipgrid');if(!g)return;const w=document.querySelector('.wrap'),pb=parseFloat(getComputedStyle(w).paddingBottom)||0;
+  const vh=window.visualViewport?visualViewport.height:innerHeight;g.style.height=Math.max(240,Math.floor(vh-g.getBoundingClientRect().top-pb))+'px'}
+addEventListener('resize',()=>{if(calcIpad()!==ipMode)render();else fitGrid()});
+addEventListener('orientationchange',()=>setTimeout(()=>{ipMode=calcIpad();render()},250));
 function render(){
   applyTheme(); ipMode=calcIpad(); document.body.classList.toggle('ipadL',ipMode==='L'); document.body.classList.toggle('ipadP',ipMode==='P');
   const body=view==='season'&&S.phase!=='create'?seasonView():view==='career'&&S.phase!=='create'?careerView():view==='hof'?hofView():view==='ach'?achView():gameView();
@@ -2426,6 +2451,7 @@ function render(){
   const hadOv=!!app.querySelector('.ovl'), ovKey=app.querySelector('.ovl .ovcard')?.className||'';
   app.innerHTML=`<div class="wrap">${header()}${body}</div>${overlay()}`;
   const nov=app.querySelector('.ovl'); if(nov&&hadOv&&(nov.querySelector('.ovcard')?.className||'')===ovKey)nov.classList.add('still');
+  if(ipMode)fitGrid();
   const cs=app.querySelector('.ctab-s'),mr=cs&&cs.querySelector('tr.me');if(cs&&mr)cs.scrollTop=Math.max(0,mr.offsetTop-cs.clientHeight/2+mr.offsetHeight/2);
   if(hadFocus){const n=document.getElementById('pname');if(n){n.focus();n.setSelectionRange(n.value.length,n.value.length)}}
 }
@@ -2439,6 +2465,7 @@ document.addEventListener('click',e=>{
   const a=b.dataset.act, v=b.dataset.v;
   if(a==='tab'){view=v;render();return}
   if(a==='svtab'){svTab=v;render();return}
+  if(a==='cvm'){cvMetric=v;render();return}
   if(a==='achtab'){achTab=v;render();return}
   if(a==='reclg'){recLg=v;render();return}
   if(a==='conf'){stConf=v;render();return}
