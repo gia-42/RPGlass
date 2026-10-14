@@ -735,6 +735,9 @@ const confOf=ab=>team(ab)[2];
 const confNm=c=>c==='E'?'East':'West';
 const fmtH=i=>`${Math.floor(i/12)}′${i%12}″`;
 const cm=i=>Math.round(i*2.54);
+let units=(()=>{try{return localStorage.getItem('rpglass-units')||'imp'}catch(e){return'imp'}})();
+const hTxt=i=>units==='met'?`${(i*2.54/100).toFixed(2)} m`:fmtH(i);
+const hRange=(a,b)=>units==='met'?`${(a*2.54/100).toFixed(2)}–${(b*2.54/100).toFixed(2)} m`:`${fmtH(a)}–${fmtH(b)}`;
 function lum(h){const n=parseInt(h.slice(1),16),f=c=>{c/=255;return c<=.03928?c/12.92:((c+.055)/1.055)**2.4};return .2126*f(n>>16&255)+.7152*f(n>>8&255)+.0722*f(n&255)}
 const contrast=(a,b)=>{const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
 /* original monogram badge in the team's two colours */
@@ -934,7 +937,7 @@ const SFX={
 const sfx=(k,...a)=>{try{if(soundOn&&ac())SFX[k](...a)}catch(e){}};
 
 /* ================= state ================= */
-const APP_VER='0.16';
+const APP_VER='0.17';
 let setOpen=false, howOpen=false, quitArm=false;
 let diceFast=(()=>{try{return localStorage.getItem('rpglass-dice')==='fast'}catch(e){return false}})();
 let allSpd=(()=>{try{return localStorage.getItem('rpglass-allspd')||'f'}catch(e){return'f'}})();
@@ -945,6 +948,7 @@ function setMenu(){
     <div class="setrow"><span>Sound</span>${seg('sound',soundOn?'on':'off',[['on','On'],['off','Off']])}</div>
     <div class="setrow"><span>Dice speed</span>${seg('dicespd',diceFast?'f':'n',[['n','Normal'],['f','Fast']])}</div>
     <div class="setrow"><span>Roll all speed</span>${seg('allspd',allSpd,[['n','Normal'],['f','Fast'],['s','Super fast']])}</div>
+    <div class="setrow"><span>Units</span>${seg('units',units,[['imp','Imperial'],['met','Metric']])}</div>
     <div class="setrow"><span>How to play</span><button class="theme-btn" data-act="howto">Open</button></div>
     <div class="setrow"><span>New career</span>${S.phase==='create'?'<span class="muted small">Already here</span>':`<button class="theme-btn${quitArm?' warn':''}" data-act="quit">${quitArm?'Tap to confirm':'Start over'}</button>`}</div>
     ${quitArm?'<div class="setnote">This ends your current career without saving it to the Hall of Fame.</div>':''}
@@ -1117,7 +1121,7 @@ function scoutFor(cr){
   const a=crAttrs(cr), o=ovrOf(a,cr.pos,cr.style), p=projectFor(o,cr.lg), cs=compsFor(cr,PTIERS[p.tier]);
   const best=cs[0].c, alt=cs[1]&&cs[1].c;
   const keys=Object.entries(best[4]).filter(([k,w])=>w>0).sort((x,y)=>(cr.rolls[y[0]]||0)-(cr.rolls[x[0]]||0)).slice(0,2).map(([k])=>AN[k].toLowerCase());
-  return {o,...p,comp:best[0],alt:alt?alt[0]:null,why:`${keys.join(' and ')} on a ${fmtH(heightIn(cr))} frame`};
+  return {o,...p,comp:best[0],alt:alt?alt[0]:null,why:`${keys.join(' and ')} on a ${hTxt(heightIn(cr))} frame`};
 }
 function scoutHTML(sc,lg){
   const [t,d]=PTIER[sc.tier];
@@ -1692,7 +1696,7 @@ function sheet(){
   if(S.phase==='season')chips.push(`<button class="chip reqb${S.req?' on':''}" data-act="req" title="${S.req?'Tap to withdraw':'Ask to be traded at the deadline or in the summer'}">${S.req?'Trade requested ×':'Request a trade'}</button>`);
   const tv=effV(), tl=tierOf(tv), tw=clamp((tv-.6)/(5.6-.6)*100,4,100), rw=(S.role+1)/6*100;
   return `<section class="panel"><div class="who"><div class="stack">
-    <span class="lbl">${S.age} yrs · ${fmtH(S.height)} · ${cm(S.height)} cm · ${lg.yl(S.year)}</span>
+    <span class="lbl">${S.age} yrs · ${hTxt(S.height)} · ${lg.yl(S.year)}</span>
     <span class="pos"><span class="ab">${S.pos}</span><span class="lbl">${POS[S.pos].nm} · ${esc(styleOf()[1])}</span></span>
     <h2>${esc(S.name)}</h2>
     ${S.team?`<div class="muted clubline">${crest(S.team,15)}<span>${esc(tName(S.team))}</span>${compImg(lg.nm,15)}</div>`:''}
@@ -1812,7 +1816,7 @@ function createCard(){
   let posH='';
   if(cr.pos){const sc=posScores(cr),P=POS[cr.pos],[lo,hi]=P.ht[cr.lg],alt=sc[1];
     posH=`<div class="cr-sec"><span class="lbl">Position · picked for you</span><div class="autopos"><span class="pos"><span class="ab">${cr.pos}</span><b>${P.nm}</b></span>
-      <span class="muted small">${fmtH(lo)}–${fmtH(hi)} range · best at ${P.k.map(k=>AN[k]).join(', ')} · bonus ${Object.entries(P.bon).map(([k,v])=>`${A3[k]} +${v}`).join(', ')}</span>
+      <span class="muted small">${hRange(lo,hi)} range · best at ${P.k.map(k=>AN[k]).join(', ')} · bonus ${Object.entries(P.bon).map(([k,v])=>`${A3[k]} +${v}`).join(', ')}</span>
       <span class="muted small">Next best fit: ${POS[alt.k].nm}</span></div></div>`}
   const styles=cr.pos?`<div class="cr-sec"><span class="lbl">Playstyle</span><div class="styles">${STYLES[cr.pos].map(s=>`<button class="stylebtn" data-act="style" data-v="${s[0]}" aria-pressed="${cr.style===s[0]}"><b>${s[1]}</b><span>${s[4]}</span><i>${s[2].map(k=>A3[k]+' +1').join(' · ')}</i></button>`).join('')}</div></div>`:'';
   const o=cr.pos?ovrOf(a,cr.pos,cr.style):null;
@@ -1822,7 +1826,7 @@ function createCard(){
       <input type="text" id="pname" value="${esc(cr.name)}" maxlength="28" aria-label="Player name" autocomplete="off">
       <button class="btn ghost sm" data-act="rname" aria-label="Random name" title="Random name">⟳</button></div></div>
     <div class="cr-sec"><span class="lbl">Height · d10</span><div class="hrow2"><button class="dbtn" data-act="height" ${cr.hd?'disabled':''}>${dieSVG(10,cr.hd||'?',cr.hd?dieCls(10)(cr.hd):'','hd')}</button>
-      <div class="stack" style="gap:0;min-width:0"><b class="num" style="font-size:20px">${hin?`${fmtH(hin)} · ${cm(hin)} cm`:'Roll your height'}</b><span class="muted small">${hb}</span></div></div></div>
+      <div class="stack" style="gap:0;min-width:0"><b class="num" style="font-size:20px">${hin?hTxt(hin):'Roll your height'}</b><span class="muted small">${hb}</span></div></div></div>
     <div class="cr-sec"><div class="row" style="justify-content:space-between"><span class="lbl">Attributes · d10 each, tap to roll</span>${allRolled(cr)?'':`<button class="btn ghost sm" data-act="rollall">Roll all</button>`}</div><div class="cdice">${dice}</div></div>
     ${posH}${styles}
     ${ready?scoutHTML(scoutFor(cr),cr.lg):''}
@@ -2322,6 +2326,7 @@ document.addEventListener('click',e=>{
   if(a==='reclg'){recLg=v;render();return}
   if(a==='conf'){stConf=v;render();return}
   if(a==='settings'){setOpen=!setOpen;quitArm=false;render();return}
+  if(a==='units'){units=v==='met'?'met':'imp';try{localStorage.setItem('rpglass-units',units)}catch(_){}render();return}
   if(a==='dicespd'){diceFast=v==='f';try{localStorage.setItem('rpglass-dice',diceFast?'fast':'normal')}catch(_){}render();return}
   if(a==='allspd'){allSpd=v;try{localStorage.setItem('rpglass-allspd',v)}catch(_){}render();return}
   if(a==='howto'){howOpen=true;setOpen=false;render();return}
