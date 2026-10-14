@@ -559,6 +559,61 @@ img.complogo.lchip{background:#fff;border-radius:6px;padding:2px 5px;box-sizing:
 @keyframes floatUp{0%{opacity:0;transform:translateY(0)}15%{opacity:.9}100%{opacity:0;transform:translateY(-110vh)}}
 /* celebration */
 
+
+/* ===== iPad layouts (L: landscape, three columns · P: portrait, two) ===== */
+body.ipadL .wrap{max-width:1240px} body.ipadP .wrap{max-width:1000px}
+.ipgrid{display:grid;gap:14px;flex:1 1 auto!important;min-height:0}
+.ipgrid.ipL{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) minmax(0,1fr)}
+.ipgrid.ipP{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
+.ipgrid.ip2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.ipgrid.cv3{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,1fr)}
+.ipcol{display:flex;flex-direction:column;gap:14px;min-height:0;min-width:0}
+.ipcol>section{flex:none;margin:0}
+.ipcol>.panel.hero{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column}
+.ipcol>.grow{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.ipcol.sc{overflow-y:auto;overscroll-behavior:contain;padding-bottom:2px;scrollbar-width:thin}
+.ftab .stand{width:100%}
+.hstats .numgrid.n4{grid-template-columns:repeat(4,1fr)}
+:is(.ipadL,.ipadP) .panel.hero .cr{max-width:760px;margin:0 auto;width:100%}
+:is(.ipadL,.ipadP) .dicecol>svg.die{max-height:150px}
+/* phone: if the screen is short, the page scrolls instead of squashing */
+.onepage .wrap{overflow-y:auto;overscroll-behavior:contain}
+body:not(.ipadL):not(.ipadP) .onepage .wrap>.panel.hero,body:not(.ipadL):not(.ipadP).onepage .wrap>.panel.hero{min-height:min(360px,60dvh)}
+/* dice keep their shape */
+svg.die{aspect-ratio:1/1}
+/* ===== career page ===== */
+.onepage .wrap>.cvscroll,.cvscroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:12px;padding-bottom:4px}
+.cvscroll>section{flex:none}
+.cvhead{display:flex;flex-direction:column;gap:12px}
+.cvnums{grid-template-columns:repeat(5,1fr)}
+.cvp .sech{margin:0 0 8px}
+.pg-grid{display:grid;grid-template-columns:1fr;gap:12px}
+.pg-m{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pg-h{display:flex;justify-content:space-between;align-items:baseline}.pg-h b{font-size:15px;font-weight:600}
+
+.atlist{display:flex;flex-direction:column;gap:7px}
+.atr{display:grid;grid-template-columns:92px minmax(0,1fr) 26px 30px;align-items:center;gap:8px;font-size:13px}
+.atr .atn{color:var(--ink-2)} .atr.key .atn{color:var(--ink);font-weight:600}
+.att{position:relative;height:10px;border-radius:999px;background:var(--sunk);overflow:visible}
+.att i{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:var(--accent);opacity:.55}
+.atr.key .att i{opacity:1}
+.att u{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--ink);border-radius:1px}
+.atr b{text-align:right;font-weight:600} .atd{font-size:11.5px;color:var(--ink-3);text-align:right}
+.ch-tick{display:inline-block;width:2px;height:10px;background:var(--ink);margin:0 4px 0 8px;vertical-align:-1px}
+.spk-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 12px}
+.spk{display:flex;flex-direction:column;gap:2px;min-width:0}
+.spk-h{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3)} .spk-h b{color:var(--ink-2);font-weight:500}
+.spk.key .spk-h span{color:var(--ink);font-weight:600}
+.spark{width:100%;height:34px;display:block;overflow:visible}
+.stt-w{overflow-x:auto}
+.stt{width:100%;border-collapse:collapse;font-family:var(--f-num);font-size:12.5px;font-variant-numeric:tabular-nums}
+.stt th{font-family:var(--f-ui);font-size:10.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);text-align:right;padding:4px 6px;border-bottom:1px solid var(--rule)}
+.stt td{text-align:right;padding:5px 5px;border-bottom:1px solid var(--rule);color:var(--ink-2);white-space:nowrap}
+.stt th:first-child,.stt td:first-child{text-align:left} .stt td:nth-child(2){padding:0 2px;width:20px}
+.stt td.yr{color:var(--ink)} .stt td.hi{color:var(--ink);font-weight:700}
+.stt .sttr{font-style:normal;color:#e2a93b}
+.stt tfoot td{color:var(--ink);font-weight:600;border-bottom:0;border-top:1px solid var(--rule-2)}
+@media (max-width:520px){.cvnums{grid-template-columns:repeat(5,1fr)}.cvnums b{font-size:15px}.spk-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.atr{grid-template-columns:80px minmax(0,1fr) 22px 28px}.pg-grid{gap:6px}}
 /* scouting report */
 .scout{border:1px solid var(--rule);border-radius:12px;padding:12px 14px;gap:8px;background:color-mix(in srgb,var(--accent) 5%,transparent)}
 .sc-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
@@ -872,7 +927,7 @@ const confWon=h=>(h.lg||S.lg)==='nba'&&(h.ring||/NBA Finals/.test(h.po||''));
 
 /* ================= dice (same shapes as RPGoal) ================= */
 function dieSVG(type,val,cls='',id=''){
-  const attr=`class="die d${type} ${cls}" ${id?`data-die="${id}"`:''} viewBox="0 0 100 100" aria-hidden="true"`;
+  const attr=`class="die d${type} ${cls}" ${id?`data-die="${id}"`:''} viewBox="0 0 100 100" width="100" height="100" preserveAspectRatio="xMidYMid meet" aria-hidden="true"`;
   const tx=(y,fs=24)=>`<text x="50" y="${y}" font-size="${fs}">${val}</text>`;
   if(type===20)return `<svg ${attr}><polygon class="face" points="50,4 90,27 90,73 50,96 10,73 10,27"/><path class="bp" d="M50,4L90,27L50,22Z M10,27L10,73L24,66Z M90,73L50,96L76,66Z"/><path class="bq" d="M10,27L24,66L50,22Z M90,27L76,66L50,22Z M10,73L24,66L50,96Z"/><path class="bl" d="M50,4L10,27L50,22Z M90,27L90,73L76,66Z M24,66L76,66L50,96Z"/><path class="edge" d="M50,4L50,22M50,22L90,27M50,22L10,27M90,27L76,66M10,27L24,66M90,73L76,66M10,73L24,66M50,96L76,66M50,96L24,66M50,22L76,66L24,66Z"/>${tx(50)}</svg>`;
   return `<svg ${attr}><polygon class="face" points="50,4 94,46 50,96 6,46"/><path class="bp" d="M50,4L6,46L30,60Z M70,60L94,46L50,96Z"/><path class="bq" d="M6,46L30,60L50,96Z M30,60L70,60L50,96Z"/><path class="bl" d="M50,4L70,60L94,46Z"/><path class="edge" d="M50,4L30,60M50,4L70,60M30,60L50,96M70,60L50,96M30,60L70,60M6,46L30,60M94,46L70,60"/>${tx(40)}</svg>`;
@@ -937,7 +992,7 @@ const SFX={
 const sfx=(k,...a)=>{try{if(soundOn&&ac())SFX[k](...a)}catch(e){}};
 
 /* ================= state ================= */
-const APP_VER='0.17';
+const APP_VER='0.18';
 let setOpen=false, howOpen=false, quitArm=false;
 let diceFast=(()=>{try{return localStorage.getItem('rpglass-dice')==='fast'}catch(e){return false}})();
 let allSpd=(()=>{try{return localStorage.getItem('rpglass-allspd')||'f'}catch(e){return'f'}})();
@@ -1142,7 +1197,7 @@ function startCareer(){
     age:lg.age(),year:lg.start,team:null,role:0,contract:null,tv:{},hist:[],draft:null,season:null,off:null,ovr0:null,champs:[]};
   lg.teams.forEach(t=>S.tv[t[0]]=clamp(t[6]+(rnd()-.5)*1.4,1,5.2));
   S.hd=cr.hd; S.tens=AK.filter(k=>cr.rolls[k]===10).length; S.recs={}; S.fans={}; S.fanLog=[]; S.stints=[];
-  S.ovr0=ovr(); S.proj=proj; save();
+  S.ovr0=ovr(); S.proj=proj; S.at0={...S.attrs}; save();
 }
 function draftMod(){return clamp(Math.round((ovr()-60)/2.5),-2,8)}
 function draftPick(score){const lg=L();return lg.rounds===2?clamp(Math.round(61-score*2.9),1,61):clamp(Math.round(46-score*2.1),1,46)}
@@ -1484,7 +1539,7 @@ function finishSeason(){
   const s=S.season, ln=seasonLine(s);
   completeBracket();
   const aw=awards(), r=s.stand[S.team];
-  const h={yr:S.year,team:S.team,age:S.age,role:S.role,ovr:ovr(),gp:s.gp,ppg:ln.ppg,rpg:ln.rpg,apg:ln.apg,w:r.w,l:r.l,seed:s.seed,po:s.po||'Missed the playoffs',ring:s.ring||0,cup:s.cup.res==='won',aw,champ:s.champ,cupW:s.cup.winner,from:s.from||null,pts:s.pts,reb:s.reb,ast:s.ast,hi:Math.max(s.hi,s.phi),rhi:s.hi,td:s.td,mstrk:s.mstrk,perfect:s.perfect,n20:s.n20,f:s.f,pos:myPos(),poGp:s.pgp,poPts:s.ppts};
+  const h={at:{...S.attrs},yr:S.year,team:S.team,age:S.age,role:S.role,ovr:ovr(),gp:s.gp,ppg:ln.ppg,rpg:ln.rpg,apg:ln.apg,w:r.w,l:r.l,seed:s.seed,po:s.po||'Missed the playoffs',ring:s.ring||0,cup:s.cup.res==='won',aw,champ:s.champ,cupW:s.cup.winner,from:s.from||null,pts:s.pts,reb:s.reb,ast:s.ast,hi:Math.max(s.hi,s.phi),rhi:s.hi,td:s.td,mstrk:s.mstrk,perfect:s.perfect,n20:s.n20,f:s.f,pos:myPos(),poGp:s.pgp,poPts:s.ppts};
   h.fanB=s.fan0; fanSeasonEnd(h); h.fanA=fanV(S.team);
   S.hist.push(h); S.carryOut=Math.max(0,s.out-10); S.phase='off'; S.off={step:'eos'}; save(); render();
   sfx(h.ring?'title':'seasonEnd');
@@ -1844,6 +1899,14 @@ function retiredCard(){
 function gameView(){
   if(S.phase==='create')return `<section class="panel hero">${createCard()}</section>`;
   const hero=S.phase==='draft'?draftCard():S.phase==='retired'?retiredCard():S.season&&S.season.cur?stageCard():`<div class="stage"><div class="st-head"><span class="rk">Offseason</span><h3>Summer</h3></div></div>`;
+  if(ipMode&&S.phase==='season'&&S.season){
+    const nba=S.lg==='nba', c=nba?confOf(S.team):null, r=S.season.stand[S.team];
+    const tb=`<section class="panel grow ftab"><div class="ctab-h"><span class="lbl">${nba?confNm(c)+'ern Conference':'WNBA standings'}</span><span class="lbl">${ord(myPos())} · ${r.w}–${r.l}</span></div>${standTable(c)}${legendMk()}</section>`;
+    const hp=`<section class="panel hero">${hero}</section>`;
+    if(ipMode==='L')return `<div class="ipgrid ipL"><div class="ipcol">${sheet()}${homeStats()}</div><div class="ipcol">${hp}</div><div class="ipcol">${tb}</div></div>`;
+    return sheet()+`<div class="ipgrid ipP"><div class="ipcol">${hp}</div><div class="ipcol">${tb}${homeStats()}</div></div>`;
+  }
+  if(ipMode&&S.phase!=='create')return `<div class="ipgrid ip2"><div class="ipcol">${sheet()}</div><div class="ipcol"><section class="panel hero">${hero}</section></div></div>`;
   return sheet()+(S.phase==='season'&&S.season?homeTable():'')+`<section class="panel hero">${hero}</section>`;
 }
 
@@ -1870,6 +1933,11 @@ function standTable(conf,mini){
   return `<table class="stand${mini?' mini':''}"><thead><tr><th></th><th>Team</th><th>W</th><th>L</th>${mini?'':'<th>Pct</th>'}<th>GB</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 const legendMk=()=>`<div class="mklegend">${(S.lg==='nba'?['z','x','pi','e']:['z','x','e']).map(m=>`<span>${mk(m)} ${MKT[m].replace('Clinched ','')}</span>`).join('')}</div>`;
+function homeStats(){
+  const s=S.season, ln=seasonLine(s), r=s.stand[S.team], up=upcoming(5);
+  return `<section class="panel grow hstats"><div class="numgrid n4"><div><span class="lbl">Record</span><b>${r.w}–${r.l}</b></div><div><span class="lbl">PPG</span><b>${f1(ln.ppg)}</b></div><div><span class="lbl">RPG</span><b>${f1(ln.rpg)}</b></div><div><span class="lbl">APG</span><b>${f1(ln.apg)}</b></div></div>
+    ${up.length?`<h4 class="sech" style="margin-top:12px">Coming up</h4><div class="track">${up.map(g=>`<div class="trow"><span class="tag${g.po?' po':''}">${g.lbl}</span><div class="t2"><b>${g.home==null?'vs':g.home?'vs':'at'} ${esc(tName(g.opp))}${rivTag(g.opp)}</b><span>${esc(TIERS[tierOf(teamV(g.opp))])} · ${s.stand[g.opp].w}–${s.stand[g.opp].l}</span></div>${crest(g.opp,20)}</div>`).join('')}</div>`:''}</section>`;
+}
 function homeTable(){
   const nba=S.lg==='nba', c=nba?confOf(S.team):null;
   return `<section class="panel ctab"><div class="ctab-h"><span class="lbl">${nba?confNm(c)+'ern Conference':'WNBA standings'}</span><span class="lbl">${ord(myPos())} · ${S.season.stand[S.team].w}–${S.season.stand[S.team].l}</span></div><div class="ctab-s">${standTable(c,true)}</div></section>`;
@@ -1890,16 +1958,18 @@ function seasonView(){
   const head=`<section class="panel stack" style="gap:10px"><div class="seg"><div class="stack" style="gap:0;min-width:0"><span class="lbl" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(short(tm))} · ${S.phase==='season'?'this season':'last season'}</span><b style="font-size:17px">${lg.yl(s.yr)}</b></div>
     <div class="subtabs" role="group"><button data-act="svtab" data-v="ov" aria-pressed="${svTab!=='po'}">Season</button><button data-act="svtab" data-v="po" aria-pressed="${svTab==='po'}">Playoffs</button></div></div>
     <div class="numgrid"><div><span class="lbl">Record</span><b>${r.w}–${r.l}</b></div><div><span class="lbl">${s.seed?'Seed':'Place'}</span><b>${ord(s.seed||myPos())}</b></div><div><span class="lbl">PPG</span><b>${f1(ln.ppg)}</b></div><div><span class="lbl">RPG</span><b>${f1(ln.rpg)}</b></div><div><span class="lbl">APG</span><b>${f1(ln.apg)}</b></div></div></section>`;
+  if(ipMode&&svTab!=='po'){const P=overParts();return head+`<div class="ipgrid ip2"><div class="ipcol"><section class="panel grow"><h4 class="sech">Standings</h4>${P.tbl}</section></div><div class="ipcol"><section class="panel grow">${P.up}<h4 class="sech">Results</h4>${P.log}</section></div></div>`}
   return head+`<section class="panel scrollp">${svTab==='po'?poView():overView()}</section>`;
 }
-function overView(){
+function overParts(){
   const s=S.season, nba=S.lg==='nba', c=stConf||(nba?confOf(S.team):null);
   const tbl=`<div class="row" style="justify-content:space-between;margin-bottom:6px">${nba?`<div class="subtabs" role="group"><button data-act="conf" data-v="E" aria-pressed="${c==='E'}">East</button><button data-act="conf" data-v="W" aria-pressed="${c==='W'}">West</button></div><span class="lbl">1–6 playoffs · 7–10 play-in</span>`:`<span class="lbl">Standings · top 8 make the playoffs</span>`}</div>
     <div style="overflow-x:auto">${standTable(nba?c:null)}</div>${legendMk()}`;
   const up=upcoming(6);
   const upH=up.length?`<h4 class="sech">Coming up</h4><div class="track">${up.map(g=>`<div class="trow"><span class="tag${g.po?' po':''}">${g.lbl}</span><div class="t2"><b>${g.home==null?'vs':g.home?'vs':'at'} ${esc(tName(g.opp))}${rivTag(g.opp)}</b><span>${esc(TIERS[tierOf(teamV(g.opp))])} · ${s.stand[g.opp].w}–${s.stand[g.opp].l}</span></div>${crest(g.opp,20)}</div>`).join('')}</div>`:'';
-  return `${tbl}${upH}<h4 class="sech">Results</h4>${logView()}`;
+  return {tbl,up:upH,log:logView()};
 }
+function overView(){const P=overParts();return `${P.tbl}${P.up}<h4 class="sech">Results</h4>${P.log}`}
 function logView(){
   const s=S.season, rows=[];
   const all=s.log.concat(s.cur&&(s.cur.mi||s.cur.done)?[s.cur]:[]);
@@ -1940,7 +2010,7 @@ function poView(){
 
 /* ---- career page ---- */
 function chartLine(vals,labels,o={}){
-  const W=320,Hh=120,pl=28,pr=8,pt=10,pb=20,n=vals.length;
+  const W=o.W||320,Hh=o.H||120,pl=28,pr=8,pt=10,pb=20,n=vals.length;
   const lo=o.min??Math.floor(Math.min(...vals)/5)*5, hi=o.max??(Math.ceil(Math.max(...vals)/5)*5||1), sp=hi-lo||1;
   const x=i=>n<2?pl+(W-pl-pr)/2:pl+i*(W-pl-pr)/(n-1), y=v=>pt+(1-(v-lo)/sp)*(Hh-pt-pb);
   const ticks=[lo,lo+sp/2,hi];
@@ -1973,36 +2043,72 @@ function careerView(){
   const keys=Object.keys(tally).sort((a,b)=>(order.indexOf(a)+1||99)-(order.indexOf(b)+1||99));
   const confs={};H.filter(confWon).forEach(h=>{const c=confOf(h.team);confs[c]=(confs[c]||0)+1});
   const shelfI=[rings?[trophySVG('title'),rings,`${lg.nm} champion`]:null].concat(Object.keys(confs).sort().map(c=>[trophySVG('conf',undefined,undefined,c),confs[c],`${confNm(c)} champion`]),[cups?[trophySVG('cup'),cups,lg.cupNm]:null],keys.map(k=>{const [kk,a]=awKind(k);return [trophySVG(kk,undefined,undefined,a),tally[k],k]})).filter(Boolean);
-  const cab=shelfI.length?`<div class="cv-sec"><h4 class="sech">Trophy cabinet</h4><div class="shelf">${shelfI.map(([g,n,l])=>`<div class="tro" title="${esc(l)}">${g}${n>1?`<b>×${n}</b>`:''}<span>${esc(l)}</span></div>`).join('')}</div>
-    ${rings?`<div class="rings">${H.filter(h=>h.ring).map(h=>`<div class="rg" title="${esc(tName(h.team))} · ${lg.yl(h.yr)}">${ringSVG(h.team)}<span>${lg.yl(h.yr)}</span></div>`).join('')}</div>`:''}</div>`:'';
-  const best=H.reduce((a,h)=>!a||h.ppg>a.ppg?h:a,null);
   const yl=y=>S.lg==='nba'?`’${String(y+1).slice(2)}`:`’${String(y).slice(2)}`;
   const labels=H.map(h=>yl(h.yr));
-  /* team stints */
   const stints=[];H.forEach(h=>{const l=stints[stints.length-1];if(l&&l.team===h.team){l.to=h.yr;l.n++;l.rings+=h.ring}else stints.push({team:h.team,from:h.yr,to:h.yr,n:1,rings:h.ring})});
+  const best=H.reduce((a,h)=>!a||h.ppg>a.ppg?h:a,null);
+  const pk=Math.max(...H.map(h=>h.ovr));
+  const panel=(title,body,cls='')=>`<section class="panel cvp ${cls}"><h4 class="sech">${title}</h4>${body}</section>`;
+
+  /* header */
+  const head=`<section class="panel cvhead">
+    <div class="cv-top"><div class="stack" style="gap:2px;min-width:0"><span class="lbl">${S.pos} · ${esc(styleOf()[1])} · ${lg.yl(H[0].yr)} → ${lg.yl(H[H.length-1].yr)}</span><h2>${esc(S.name)}</h2>
+      <span class="muted small">${H.length} season${H.length>1?'s':''} · ${stints.length} team${stints.length>1?'s':''} · peak ${pk} OVR</span>
+      ${S.proj?`<span class="muted small">Draft-night projection: ${PTIER[S.proj.tier][0].toLowerCase()}, the next ${esc(S.proj.comp)}, peak ${S.proj.peak}${S.phase==='retired'||S.age>=28?` · <b>${projVerdict()}</b>`:''}</span>`:''}</div>
+      <div class="rating"><div class="big num">${legacy(H)}</div><div class="lbl">Legacy</div></div></div>
+    <div class="numgrid cvnums"><div><span class="lbl">Games</span><b>${gp.toLocaleString('en-US')}</b></div><div><span class="lbl">Points</span><b>${Math.round(pts).toLocaleString('en-US')}</b></div><div><span class="lbl">Rebs</span><b>${Math.round(reb).toLocaleString('en-US')}</b></div><div><span class="lbl">Asts</span><b>${Math.round(ast).toLocaleString('en-US')}</b></div><div><span class="lbl">Rings</span><b>${rings}</b></div>
+      <div><span class="lbl">PPG</span><b>${f1(pts/gp||0)}</b></div><div><span class="lbl">RPG</span><b>${f1(reb/gp||0)}</b></div><div><span class="lbl">APG</span><b>${f1(ast/gp||0)}</b></div><div><span class="lbl">High</span><b>${hiG}</b></div><div><span class="lbl">PO PPG</span><b>${poGp?f1(poPts/poGp):'—'}</b></div></div></section>`;
+
+  /* stats table */
+  const mx=k=>Math.max(...H.map(h=>+f1(h[k])));
+  const cell=(h,k)=>{const v=f1(h[k]);return `<td class="${H.length>1&&+v===mx(k)?'hi':''}">${v}</td>`};
+  const statT=panel('Stats',`<div class="stt-w"><table class="stt"><thead><tr><th>Season</th><th></th><th>GP</th><th>PPG</th><th>RPG</th><th>APG</th><th>OVR</th><th>W–L</th></tr></thead><tbody>
+    ${H.map(h=>`<tr><td class="yr">${lg.yl(h.yr)}${h.ring?' <i class="sttr">★</i>':''}</td><td title="${esc(tName(h.team))} · age ${h.age}">${crest(h.team,16)}</td><td>${h.gp}</td>${cell(h,'ppg')}${cell(h,'rpg')}${cell(h,'apg')}<td class="${H.length>1&&h.ovr===pk?'hi':''}">${h.ovr}</td><td>${h.w}–${h.l}</td></tr>`).join('')}
+    </tbody><tfoot><tr><td>Career</td><td></td><td>${gp}</td><td>${f1(pts/gp||0)}</td><td>${f1(reb/gp||0)}</td><td>${f1(ast/gp||0)}</td><td>${pk}</td><td>${sum('w')}–${sum('l')}</td></tr></tfoot></table></div>
+    <div class="ch-note">Bold: career best · ★ champion season</div>`);
+
+  /* charts */
+  const mini=(nm,k,fmt)=>`<div class="pg-m"><div class="pg-h"><span class="lbl">${nm}</span><b class="num">${f1(H[H.length-1][k])}</b></div>${chartLine(H.map(h=>+f1(h[k])),labels,{H:84,fmt:v=>f1(v).replace('.0',''),min:0,dots:H.length<=14})}</div>`;
+  const charts=panel('Rating',`${chartLine(H.map(h=>h.ovr),labels,{tip:i=>` · age ${H[i].age} · ${ROLES[H[i].role]}`,gold:H.map(h=>h.ring)})}<div class="ch-note"><i class="ch-dot"></i>Champion season</div>`)
+    +panel('Per game',`<div class="pg-grid">${mini('Points','ppg')}${mini('Rebounds','rpg')}${mini('Assists','apg')}</div>`)
+    +panel('Team win %',`${chartBars(H.map(h=>Math.round(100*h.w/Math.max(1,h.w+h.l))),labels,{max:100,ticks:[0,50,100],ref:50,fmt:v=>v+'%',gold:H.map(h=>h.ring),hl:H.map(h=>!/Missed|Play-In/.test(h.po)),tip:i=>` · ${H[i].w}–${H[i].l} · ${H[i].po}`})}<div class="ch-note"><i class="ch-sw"></i>Made the playoffs <i class="ch-dot"></i>Champions</div>`);
+
+  /* attributes */
+  const A0=S.at0||(H[0]&&H[0].at)||null, keyset=new Set(POS[S.pos].k);
+  const atRows=AK.map(k=>{const v=S.attrs[k],v0=A0?A0[k]:null,dv=v0==null?0:v-v0;
+    return `<div class="atr${keyset.has(k)?' key':''}" title="${AN[k]}: ${v}${v0!=null?` (draft day ${v0})`:''}"><span class="atn">${AN[k]}</span><div class="att"><i style="width:${(clamp(v,0,20)/20*100).toFixed(1)}%"></i>${v0!=null?`<u style="left:${(clamp(v0,0,20)/20*100).toFixed(1)}%"></u>`:''}</div><b class="num">${v}</b><span class="atd num">${v0==null?'':dv>0?'+'+dv:dv<0?'−'+(-dv):'±0'}</span></div>`}).join('');
+  const series=AK.map(k=>{const vals=(A0?[A0[k]]:[]).concat(H.filter(h=>h.at).map(h=>h.at[k]));return {k,vals}});
+  const sparkOk=series[0].vals.length>=2;
+  const attrs=panel('Attributes',`<div class="atlist">${atRows}</div><div class="ch-note"><i class="ch-sw"></i>Now ${A0?'<i class="ch-tick"></i>Draft day':''} · key attributes for a ${POS[S.pos].nm.toLowerCase()} in bold</div>
+    ${sparkOk?`<h4 class="sech" style="margin-top:14px">Growth by season</h4><div class="spk-grid">${series.map(({k,vals})=>`<div class="spk${keyset.has(k)?' key':''}"><div class="spk-h"><span>${A3[k]}</span><b class="num">${vals[0]}→${vals[vals.length-1]}</b></div>${spark(vals,0,20,['Draft'].concat(H.filter(h=>h.at).map(h=>yl(h.yr))))}</div>`).join('')}</div>`:''}`);
+
+  /* cabinet, records */
+  const cab=panel('Trophy cabinet',shelfI.length?`<div class="shelf">${shelfI.map(([g,n,l])=>`<div class="tro" title="${esc(l)}">${g}${n>1?`<b>×${n}</b>`:''}<span>${esc(l)}</span></div>`).join('')}</div>
+    ${rings?`<div class="rings" style="margin-top:10px">${H.filter(h=>h.ring).map(h=>`<div class="rg" title="${esc(tName(h.team))} · ${lg.yl(h.yr)}">${ringSVG(h.team)}<span>${lg.yl(h.yr)}</span></div>`).join('')}</div>`:''}`:'<div class="muted small">Your trophies will live here.</div>');
   const recs=Object.entries(S.recs||{}), RL=RECS[S.lg];
-  const recH=recs.length?`<div class="cv-sec"><h4 class="sech">All-time records you hold</h4><div class="cabinet">${recs.map(([id,r])=>{const R=RL.find(x=>x[0]===id);return R?`<span class="cup ring" title="Previous: ${esc(R[2])}, ${fmtRec(R,R[3])}">${esc(R[1])} · ${fmtRec(R,r.v)}</span>`:''}).join('')}</div></div>`:'';
+  const recH=recs.length?panel('All-time records you hold',`<div class="cabinet">${recs.map(([id,r])=>{const R=RL.find(x=>x[0]===id);return R?`<span class="cup ring" title="Previous: ${esc(R[2])}, ${fmtRec(R,R[3])}">${esc(R[1])} · ${fmtRec(R,r.v)}</span>`:''}).join('')}</div>`):'';
+
+  /* teams, best season, fans */
+  const teams=panel('Teams',`<div class="stints">${stints.map(t=>`<div class="stint">${crest(t.team,34)}<b>${esc(short(t.team))}</b><span>${t.from===t.to?lg.yl(t.from):`${t.from}–${S.lg==='nba'?String(t.to+1).slice(2):String(t.to).slice(2)}`}</span><span>${t.n} season${t.n>1?'s':''}${t.rings?` · ${t.rings} ring${t.rings>1?'s':''}`:''}</span></div>`).join('')}</div>
+    ${best?`<h4 class="sech" style="margin-top:12px">Best season</h4><div class="bestrow">${crest(best.team,28)}<div><b>${lg.yl(best.yr)} · ${esc(tName(best.team))}</b><span class="muted small">${f1(best.ppg)} PPG · ${f1(best.rpg)} RPG · ${f1(best.apg)} APG · ${best.w}–${best.l} · ${esc(best.po)}</span></div></div>`:''}`);
+  const fans=(()=>{const ts=[...new Set(H.map(h=>h.team).concat(Object.keys(S.fans||{}).filter(k=>Math.abs(fanV(k))>=3)))].sort((a,b)=>fanV(b)-fanV(a));const lo=-30,hi=55,z=(0-lo)/(hi-lo)*100;
+    return panel('Fan support',`<div class="fanlist">${ts.map(ab=>{const v=fanV(ab),t=fanT(ab),x=(clamp(v,lo,hi)-lo)/(hi-lo)*100;return `<div class="fanrow">${crest(ab,18)}<span class="nm">${esc(tName(ab))}${playedFor(ab)||ab===S.team?'':isRival(S.team,ab)?' · rival':''}</span><div class="tr"><i style="left:${Math.min(z,x).toFixed(1)}%;width:${Math.abs(x-z).toFixed(1)}%;background:${v<0?'var(--bad)':'var(--good)'}"></i></div><span class="tier t-f${t}">${FANT[t]}</span></div>`}).join('')}</div>
+    ${(S.fanLog||[]).length?`<div class="fanlog">${S.fanLog.slice(-8).reverse().map(e=>`<div><span class="dv ${e.dv>=0?'up':'down'}">${e.dv>0?'+':''}${e.dv}</span>${crest(e.ab,14)}<span>${esc(e.why)} · ${L().yl(e.yr)}</span></div>`).join('')}</div>`:''}`)})();
+
+  /* season by season */
   const rows=H.slice().reverse().map(h=>`<div class="srow"><div class="syr">${lg.yl(h.yr)}<span>${h.age} yrs · ${h.ovr} OVR</span></div><div><div class="sclub">${crest(h.team,16)}${esc(tName(h.team))}</div><div class="sleague">${ROLES[h.role]} · ${h.w}–${h.l} · ${esc(h.po)}${h.from?` · traded from ${esc(short(h.from))}`:''}</div>${h.aw.length||h.ring||h.cup||confWon(h)?`<div class="cabinet">${h.ring?`<span class="cup ring">${titleIco()}Champion</span>`:''}${confWon(h)&&!h.ring?`<span class="cup">${confIco(confOf(h.team))}${confNm(confOf(h.team))} champion</span>`:''}${h.cup?`<span class="cup">${cupIco()}${esc(lg.cupNm)}</span>`:''}${h.aw.map(x=>`<span class="cup">${awIco(x)}${esc(x)}</span>`).join('')}</div>`:''}</div>
     <div class="sstats"><span class="lbl">PPG</span><span class="lbl">RPG</span><span class="lbl">APG</span><b>${f1(h.ppg)}</b><b>${f1(h.rpg)}</b><b>${f1(h.apg)}</b></div></div>`).join('');
-  return `<section class="panel scrollp stack cv" style="gap:14px">
-    <div class="cv-top"><div class="stack" style="gap:2px;min-width:0"><span class="lbl">${S.pos} · ${esc(styleOf()[1])} · ${lg.yl(H[0].yr)} → ${lg.yl(H[H.length-1].yr)}</span><h2>${esc(S.name)}</h2><span class="muted small">${H.length} season${H.length>1?'s':''} · ${stints.length} team${stints.length>1?'s':''} · peak ${Math.max(...H.map(h=>h.ovr))} OVR</span>${S.proj?`<span class="muted small">Draft-night projection: ${PTIER[S.proj.tier][0].toLowerCase()}, the next ${esc(S.proj.comp)}, peak ${S.proj.peak}${S.phase==='retired'||S.age>=28?` · <b>${projVerdict()}</b>`:''}</span>`:''}</div>
-      <div class="rating"><div class="big num">${legacy(H)}</div><div class="lbl">Legacy</div></div></div>
-    <div class="numgrid"><div><span class="lbl">Games</span><b>${gp.toLocaleString('en-US')}</b></div><div><span class="lbl">Points</span><b>${Math.round(pts).toLocaleString('en-US')}</b></div><div><span class="lbl">Rebs</span><b>${Math.round(reb).toLocaleString('en-US')}</b></div><div><span class="lbl">Asts</span><b>${Math.round(ast).toLocaleString('en-US')}</b></div><div><span class="lbl">Rings</span><b>${rings}</b></div>
-      <div><span class="lbl">PPG</span><b>${f1(pts/gp||0)}</b></div><div><span class="lbl">RPG</span><b>${f1(reb/gp||0)}</b></div><div><span class="lbl">APG</span><b>${f1(ast/gp||0)}</b></div><div><span class="lbl">High</span><b>${hiG}</b></div><div><span class="lbl">PO PPG</span><b>${poGp?f1(poPts/poGp):'—'}</b></div></div>
-    ${cab}
-    ${recH}
-    ${(()=>{const ts=[...new Set(H.map(h=>h.team).concat(Object.keys(S.fans||{}).filter(k=>Math.abs(fanV(k))>=3)))].sort((a,b)=>fanV(b)-fanV(a));const lo=-30,hi=55,z=(0-lo)/(hi-lo)*100;
-      return `<div class="cv-sec"><h4 class="sech">Fan support</h4><div class="fanlist">${ts.map(ab=>{const v=fanV(ab),t=fanT(ab),x=(clamp(v,lo,hi)-lo)/(hi-lo)*100;return `<div class="fanrow">${crest(ab,18)}<span class="nm">${esc(tName(ab))}${playedFor(ab)||ab===S.team?'':isRival(S.team,ab)?' · rival':''}</span><div class="tr"><i style="left:${Math.min(z,x).toFixed(1)}%;width:${Math.abs(x-z).toFixed(1)}%;background:${v<0?'var(--bad)':'var(--good)'}"></i></div><span class="tier t-f${t}">${FANT[t]}</span></div>`}).join('')}</div>
-      ${(S.fanLog||[]).length?`<div class="fanlog">${S.fanLog.slice(-8).reverse().map(e=>`<div><span class="dv ${e.dv>=0?'up':'down'}">${e.dv>0?'+':''}${e.dv}</span>${crest(e.ab,14)}<span>${esc(e.why)} · ${L().yl(e.yr)}</span></div>`).join('')}</div>`:''}</div>`})()}
-    <div class="cv-sec"><h4 class="sech">Teams</h4><div class="stints">${stints.map(t=>`<div class="stint">${crest(t.team,34)}<b>${esc(short(t.team))}</b><span>${t.from===t.to?lg.yl(t.from):`${S.lg==='nba'?t.from:t.from}–${S.lg==='nba'?String(t.to+1).slice(2):String(t.to).slice(2)}`}</span><span>${t.n} season${t.n>1?'s':''}${t.rings?` · ${t.rings} ring${t.rings>1?'s':''}`:''}</span></div>`).join('')}</div></div>
-    ${best?`<div class="cv-sec"><h4 class="sech">Best season</h4><div class="bestrow">${crest(best.team,28)}<div><b>${lg.yl(best.yr)} · ${esc(tName(best.team))}</b><span class="muted small">${f1(best.ppg)} PPG · ${f1(best.rpg)} RPG · ${f1(best.apg)} APG · ${best.w}–${best.l} · ${esc(best.po)}</span></div></div></div>`:''}
-    <div class="cv-charts">
-      <div class="cv-sec"><h4 class="sech">Overall rating</h4>${chartLine(H.map(h=>h.ovr),labels,{tip:i=>` · age ${H[i].age}`,gold:H.map(h=>h.ring)})}</div>
-      <div class="cv-sec"><h4 class="sech">Points per game</h4>${chartBars(H.map(h=>+f1(h.ppg)),labels,{fmt:v=>f1(v).replace('.0',''),hl:H.map(()=>1),gold:H.map(h=>h.aw.some(x=>/^MVP$/.test(x))),tip:i=>H[i].aw.some(x=>/^MVP$/.test(x))?' · MVP':''})}<div class="ch-note"><i class="ch-dot"></i>MVP season</div></div>
-      <div class="cv-sec"><h4 class="sech">Team win %</h4>${chartBars(H.map(h=>Math.round(100*h.w/Math.max(1,h.w+h.l))),labels,{max:100,ticks:[0,50,100],ref:50,fmt:v=>v+'%',gold:H.map(h=>h.ring),hl:H.map(h=>!/Missed|Play-In/.test(h.po)),tip:i=>` · ${H[i].w}–${H[i].l} · ${H[i].po}`})}<div class="ch-note"><i class="ch-sw"></i>Made the playoffs <i class="ch-dot"></i>Champions</div></div>
-    </div>
-    <div class="cv-sec"><h4 class="sech">Season by season</h4><div class="seasons">${rows}</div></div>
-  </section>`;
+  const seasons=panel('Season by season',`<div class="seasons">${rows}</div>`);
+
+  if(ipMode==='L')return head+`<div class="ipgrid cv3"><div class="ipcol sc">${charts}</div><div class="ipcol sc">${attrs}${statT}</div><div class="ipcol sc">${cab}${recH}${seasons}${teams}${fans}</div></div>`;
+  if(ipMode==='P')return head+`<div class="ipgrid ip2"><div class="ipcol sc">${charts}${attrs}</div><div class="ipcol sc">${cab}${recH}${statT}${seasons}${teams}${fans}</div></div>`;
+  return `<div class="cvscroll">${head}${cab}${recH}${charts}${attrs}${statT}${seasons}${teams}${fans}</div>`;
+}
+/* tiny line for small multiples; shared y-domain across the set */
+function spark(vals,lo,hi,labels){
+  const W=120,Hh=34,p=3,n=vals.length,x=i=>n<2?W/2:p+i*(W-2*p)/(n-1),y=v=>p+(1-(v-lo)/(hi-lo))*(Hh-2*p);
+  const d=vals.map((v,i)=>`${i?'L':'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('');
+  return `<svg class="spark" viewBox="0 0 ${W} ${Hh}" preserveAspectRatio="none" role="img"><line class="ch-grid" x1="0" x2="${W}" y1="${y(10)}" y2="${y(10)}"/><path class="ch-l" d="${d}" vector-effect="non-scaling-stroke"/>${vals.map((v,i)=>`<g class="ch-hit"><rect x="${x(i)-W/n/2}" y="0" width="${W/n}" height="${Hh}" fill="transparent"/><title>${labels[i]||''}: ${v}</title></g>`).join('')}</svg>`;
 }
 
 /* ---- records: the real all-time marks ---- */
@@ -2301,8 +2407,11 @@ function overlay(){
   return c?`<div class="ovl" role="dialog" aria-modal="true">${c}</div>`:'';
 }
 
+let ipMode='';
+function calcIpad(){try{const w=innerWidth,h=innerHeight;return (w>=1000&&h>=600&&w>h)?'L':(w>=740&&h>=860&&h>w)?'P':''}catch(e){return''}}
+addEventListener('resize',()=>{if(calcIpad()!==ipMode)render()});
 function render(){
-  applyTheme();
+  applyTheme(); ipMode=calcIpad(); document.body.classList.toggle('ipadL',ipMode==='L'); document.body.classList.toggle('ipadP',ipMode==='P');
   const body=view==='season'&&S.phase!=='create'?seasonView():view==='career'&&S.phase!=='create'?careerView():view==='hof'?hofView():view==='ach'?achView():gameView();
   document.body.classList.add('onepage');
   const app=document.getElementById('app'), nm=document.getElementById('pname'), hadFocus=nm&&document.activeElement===nm;
