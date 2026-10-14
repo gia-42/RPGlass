@@ -668,6 +668,8 @@ svg.die{aspect-ratio:1/1}
 .plt .pt{display:inline-flex;align-items:center;gap:4px} .plt tr.tot td{font-weight:600;border-top:1px solid rgba(128,128,128,.35)}
 .plpath{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--ov-ink-2)} .plpath b{color:var(--ov-ink,#e6e7ea)}
 [data-pl]{cursor:pointer} .tm-lead>div[data-pl]:hover{background:rgba(128,128,128,.18)} .plk{text-decoration:underline dotted;text-underline-offset:3px}
+.hrow.hopen{cursor:pointer} .hrow.hopen .hscore::after{content:' ›';opacity:.45;font-weight:400} .hrow.hopen:hover{background:rgba(128,128,128,.07)}
+.hofbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:8px;padding-bottom:8px}
 .dlnews{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--ink-2);margin-top:8px;text-align:center;max-width:360px}
 .dlnews .lbl{margin-bottom:2px} .dlnews .me{color:var(--ink);font-weight:600}
 .mvs .t2 span{white-space:normal;font-size:11.5px}
@@ -1065,7 +1067,7 @@ const SFX={
 const sfx=(k,...a)=>{try{if(soundOn&&ac())SFX[k](...a)}catch(e){}};
 
 /* ================= state ================= */
-const APP_VER='0.29';
+const APP_VER='0.30';
 let setOpen=false, howOpen=false, quitArm=false;
 let diceFast=(()=>{try{return localStorage.getItem('rpglass-dice')==='fast'}catch(e){return false}})();
 let allSpd=(()=>{try{return localStorage.getItem('rpglass-allspd')||'f'}catch(e){return'f'}})();
@@ -1884,10 +1886,17 @@ function careerExtra(H){
     hi:Math.max(0,...H.map(h=>h.hi||0)),sppg:Math.max(0,...H.filter(h=>h.gp>=20).map(h=>h.ppg)),peak:Math.max(0,...H.map(h=>h.ovr)),
     dpoy:count(H,/Defensive Player/),scoring:count(H,/Scoring title/),wins:Math.max(0,...H.map(h=>h.w)),poPts:sm('poPts'),cups:H.filter(h=>h.cup).length,nteams:new Set(H.map(h=>h.team)).size}
 }
+/* a compact copy of the career for the Hall of Fame page */
+function careerSnap(){
+  const r1=v=>typeof v==='number'&&v%1?Math.round(v*10)/10:v;
+  const hist=S.hist.map(h=>{const o={};Object.entries(h).forEach(([k,v])=>{if(['lgAw','goal','fanB','fanA','cupW'].includes(k))return;o[k]=r1(v)});return o});
+  const fans={};Object.entries(S.fans||{}).forEach(([k,v])=>{if(Math.abs(v)>=3||hist.some(h=>h.team===k))fans[k]=Math.round(v)});
+  return {name:S.name,lg:S.lg,pos:S.pos,style:S.style,trait:S.trait,team:S.team,hist,attrs:S.attrs,at0:S.at0,proj:S.proj,recs:S.recs,fans,fanLog:(S.fanLog||[]).slice(-8),stints:S.stints,draft:S.draft,h:S.cr&&S.cr.hd};
+}
 function endCareer(){
   const H=S.hist, lg=L(), sc=legacy(H), pts=H.reduce((a,h)=>a+h.ppg*h.gp,0), gp=H.reduce((a,h)=>a+h.gp,0);
   const entry={name:S.name,lg:S.lg,pos:S.pos,score:sc,yrs:`${lg.yl(H[0].yr)} → ${lg.yl(H[H.length-1].yr)}`,seasons:H.length,teams:[...new Set(H.map(h=>h.team))],
-    rings:H.reduce((a,h)=>a+h.ring,0),mvp:count(H,/^MVP$/),fmvp:count(H,/Finals MVP/),allstar:count(H,/^All-Star/),ppg:gp?pts/gp:0,pts:Math.round(pts),at:Date.now(),...careerExtra(H)};
+    rings:H.reduce((a,h)=>a+h.ring,0),mvp:count(H,/^MVP$/),fmvp:count(H,/Finals MVP/),allstar:count(H,/^All-Star/),ppg:gp?pts/gp:0,pts:Math.round(pts),at:Date.now(),...careerExtra(H),snap:careerSnap()};
   const list=hof();list.push(entry);list.sort((a,b)=>b.score-a.score);saveHof(list.slice(0,60));
   S.phase='retired';S.final=entry;if(!S.off||S.off.step!=='end')S.off={step:'end'};save();sfx('careerEnd');
 }
@@ -2722,9 +2731,21 @@ function myRecs(lgK){
       ${ranked.length>1?`<div class="rec-y">${ranked.slice(1).map((x,i)=>`${i+2}. ${esc(x.e.name)}${x.e.active?' (active)':''} ${fmt(R,x.v)}`).join(' · ')}</div>`:''}</div>`}).join('')}</div>
     <div class="muted small" style="margin-top:10px">Only careers you've played. Your current career counts live, marked active. Careers retired before this update are missing a few stats.</div>`;
 }
+let hofSel=null;
+/* a retired career's full page: the career view drawn from the saved copy */
+function hofCareer(e){
+  const live=S&&S.final&&S.final.at===e.at&&S.hist&&S.hist.length, snap=e.snap||(live?null:null);
+  const back=`<section class="panel hofbar"><button class="btn ghost sm" data-act="hofback">‹ Hall of Fame</button><span class="muted small">${esc(e.name)} · legacy ${e.score}</span></section>`;
+  if(!snap&&!live)return back+`<section class="panel"><div class="empty">${esc(e.name)} retired before full careers were kept in the Hall of Fame: ${e.seasons} seasons, ${f1(e.ppg)} PPG, ${e.rings} ring${e.rings===1?'':'s'}. Careers that end from now on open here with every season, graph and trophy.</div></section>`;
+  if(live)return back+careerView();
+  const keep=S;
+  try{S={...snap,phase:'retired',season:null,ros:null,off:null,final:e};return back+careerView()}
+  finally{S=keep}
+}
 function hofView(){
   const list=hof().filter(e=>e.lg===hofLg);
-  const rows=list.map((e,i)=>`<div class="hrow${i===0?' first':''}"><span class="hrank">${i+1}</span><div style="min-width:0"><div class="hname">${esc(e.name)}</div><div class="hpath">${e.pos} · ${esc(e.yrs)} · ${e.teams.map(t=>(LG[e.lg].teams.find(x=>x[0]===t)||[0,t])[1].split(' ').slice(-1)[0]).join(', ')}</div></div><span class="hscore">${e.score}</span>
+  if(hofSel!=null){const e=list.find(x=>x.at===hofSel);if(e)return hofCareer(e);hofSel=null}
+  const rows=list.map((e,i)=>`<div class="hrow${i===0?' first':''}${e.snap||(S&&S.final&&S.final.at===e.at)?' hopen':''}" data-act="hofsel" data-v="${e.at}"><span class="hrank">${i+1}</span><div style="min-width:0"><div class="hname">${esc(e.name)}</div><div class="hpath">${e.pos} · ${esc(e.yrs)} · ${e.teams.map(t=>(LG[e.lg].teams.find(x=>x[0]===t)||[0,t])[1].split(' ').slice(-1)[0]).join(', ')}</div></div><span class="hscore">${e.score}</span>
     <div class="cabinet">${e.rings?`<span class="cup ring">${titleIco(e.lg)}${e.rings}× champion</span>`:''}${e.mvp?`<span class="cup">${trophySVG('mvp','tr-t',e.lg)}${e.mvp}× MVP</span>`:''}${e.fmvp?`<span class="cup">${trophySVG('fmvp','tr-t',e.lg)}${e.fmvp}× Finals MVP</span>`:''}${e.allstar?`<span class="cup">${trophySVG('allstar','tr-t',e.lg)}${e.allstar}× All-Star</span>`:''}<span class="chip">${f1(e.ppg)} PPG</span></div></div>`).join('');
   return `<section class="panel stack" style="gap:10px"><div class="row" style="justify-content:space-between"><div class="subtabs" role="group"><button data-act="hoflg" data-v="nba" aria-pressed="${hofLg==='nba'}">${compImg('NBA',18)}NBA</button><button data-act="hoflg" data-v="wnba" aria-pressed="${hofLg==='wnba'}">${compImg('WNBA',18)}WNBA</button></div><div class="subtabs" role="group"><button data-act="hoftab" data-v="hof" aria-pressed="${hofTab!=='rec'}">Players</button><button data-act="hoftab" data-v="rec" aria-pressed="${hofTab==='rec'}">Records</button></div></div></section>
     <section class="panel scrollp">${hofTab==='rec'?myRecs(hofLg):rows?`<div class="lbl" style="margin-bottom:6px">Ranked by legacy</div><div class="hof">${rows}</div>`:`<div class="empty">Retired careers land here, ranked by legacy.</div>`}</section>`;
@@ -2985,7 +3006,7 @@ document.addEventListener('click',e=>{
   if(setOpen&&!e.target.closest('.setw')){setOpen=false;quitArm=false;render()}
   const b=e.target.closest('[data-act]'); if(!b||!b.dataset.act||busy)return;
   const a=b.dataset.act, v=b.dataset.v;
-  if(a==='tab'){view=v;render();return}
+  if(a==='tab'){if(v==='hof'&&view==='hof')hofSel=null;view=v;render();return}
   if(a==='svtab'){svTab=v;render();return}
   if(a==='trf'){trF=v;render();return}
   if(a==='cvm'){cvMetric=v;render();return}
@@ -3000,7 +3021,9 @@ document.addEventListener('click',e=>{
   if(a==='quit'){if(!quitArm){quitArm=true;render();return}quitArm=false;setOpen=false;lbAll=false;S=freshNew(S.lg||'nba');view='game';save();render();return}
   if(a==='theme'){theme=v||(theme==='auto'?'light':theme==='light'?'dark':'auto');try{localStorage.setItem('rpglass-theme',theme)}catch(_){}render();return}
   if(a==='sound'){soundOn=v?v==='on':!soundOn;try{localStorage.setItem('rpglass-sound',soundOn?'on':'off')}catch(_){}if(soundOn)sfx('click');render();return}
-  if(a==='hoflg'){hofLg=v;render();return}
+  if(a==='hoflg'){hofLg=v;hofSel=null;render();return}
+  if(a==='hofsel'){hofSel=+v;render();sfx('click');return}
+  if(a==='hofback'){hofSel=null;render();return}
   if(a==='hoftab'){hofTab=v;render();return}
   if(S.phase==='create')return onCreate(a,v);
   if(a==='draft'&&!S.draft){const r=d(20);rollDice([document.querySelector('[data-die="main"]')],20,[r],dieCls(20),()=>{doDraft(r);save();render();sfx(S.draft.und?'fail':S.draft.p<=14?'nat20':'pass')});return}
