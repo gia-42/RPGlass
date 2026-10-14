@@ -649,6 +649,17 @@ svg.die{aspect-ratio:1/1}
 .tm-lead{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px} .tm-lead>div{display:flex;flex-direction:column;gap:1px;padding:8px 10px;border-radius:10px;background:rgba(128,128,128,.1)}
 .tm-lead b{font-family:var(--f-num);font-size:18px} .tm-lead span:last-child{font-size:11px;color:var(--ov-ink-2,#9aa0ad);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tmcard .tm-head,.tmcard .tm-nums,.tmcard>.btn{flex-shrink:0}
+.trbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.chipbtn{font:inherit;font-size:12px;padding:5px 11px;border-radius:99px;border:1px solid var(--line,rgba(128,128,128,.3));background:transparent;color:var(--ink-2);cursor:pointer}
+.chipbtn[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tlist{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.tcard{position:relative;display:flex;flex-direction:column;gap:8px;padding:10px 12px;border-radius:12px;border:1px solid var(--line,rgba(128,128,128,.25))}
+.tcard.my{border-color:rgba(110,168,255,.45)} .tcard.you{border-color:rgba(110,168,255,.8);background:rgba(110,168,255,.07)}
+.ttag{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3,#8b90a0)}
+.tside{display:flex;gap:10px;align-items:flex-start;font-size:13px} .tside .crest{margin-top:2px;flex-shrink:0}
+.tps{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:2px} .tp{font-size:12.5px} .tp i{font-style:normal;font-family:var(--f-num);font-size:11.5px;color:var(--ink-3,#8b90a0)} .tp.pk{color:#e3a14d}
+.tlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));align-items:start}
+@media (max-width:560px){.svseg{flex-direction:column;align-items:stretch}.svseg .subtabs{display:flex;width:100%;align-self:stretch}.svseg .subtabs button{flex:1 1 0;min-width:0;padding-left:4px;padding-right:4px}}
 .dlnews{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--ink-2);margin-top:8px;text-align:center;max-width:360px}
 .dlnews .lbl{margin-bottom:2px} .dlnews .me{color:var(--ink);font-weight:600}
 .mvs .t2 span{white-space:normal;font-size:11.5px}
@@ -1046,7 +1057,7 @@ const SFX={
 const sfx=(k,...a)=>{try{if(soundOn&&ac())SFX[k](...a)}catch(e){}};
 
 /* ================= state ================= */
-const APP_VER='0.25';
+const APP_VER='0.26';
 let setOpen=false, howOpen=false, quitArm=false;
 let diceFast=(()=>{try{return localStorage.getItem('rpglass-dice')==='fast'}catch(e){return false}})();
 let allSpd=(()=>{try{return localStorage.getItem('rpglass-allspd')||'f'}catch(e){return'f'}})();
@@ -1070,7 +1081,7 @@ function howHTML(){
    <p><b>Build your player.</b> Pick NBA or WNBA and a name, roll a d10 for height and a d10 for each of the eight attributes; your position is picked from them. Then choose a playstyle and a background, a trait that comes with a flaw.</p>
    <p><b>Draft night.</b> One d20, plus a bonus from your overall rating, decides where you're picked, or whether you go undrafted.</p>
    <p><b>Games.</b> Each game is a d20 plus your modifiers (you, your team, home or road, clutch in big games) against a target set by the opponent's strength. Meet it and you win. A natural 20 always wins; a natural 1 always loses and makes you roll the injury d10.</p>
-   <p><b>Real rosters.</b> Every team starts with its real players. They age, improve, retire and get replaced by draft classes as your career goes on. CPU teams trade at the deadline and in the summer, contenders buying veterans and rebuilders collecting young players and picks, and free agents chase winners. See it all in Season → Roster, or tap any team name or logo to open its card: record, strength, roster, stat leaders and its recent moves.</p>   <p><b>Your role.</b> Your rating, your team and its depth chart decide your role, from deep bench to franchise player. Bigger roles mean more minutes, bigger stats and a bigger say in every roll.</p>
+   <p><b>Real rosters.</b> Every team starts with its real players. They age, improve, retire and get replaced by draft classes as your career goes on. CPU teams trade at the deadline and in the summer, contenders buying veterans and rebuilders collecting young players and picks, and free agents chase winners. See rosters in Season → Roster and every deal in Season → Trades, or tap any team name or logo to open its card: record, strength, roster, stat leaders and its recent moves.</p>   <p><b>Your role.</b> Your rating, your team and its depth chart decide your role, from deep bench to franchise player. Bigger roles mean more minutes, bigger stats and a bigger say in every roll.</p>
    <p><b>The season.</b> Play stretches of games one by one or roll them all, with the ${esc(lg.cupNm)} and All-Star voting along the way. Every other team plays its schedule too, so the standings are live.</p>
    <p><b>Playoffs.</b> ${S&&S.lg==='wnba'?'The top 8 make it.':'Seeds 1 to 6 go straight in; 7 to 10 fight it out in the Play-In.'} Each series shows one die per game: roll them one at a time or all at once.</p>
    <p><b>Offseasons.</b> Pick a training focus and roll for your summer. Young players grow fast; after 30 the clock wins. Sign contracts and decide when to retire.</p>
@@ -1306,7 +1317,7 @@ function leaders(ab){
 const tvBaseV=o=>Math.pow(Math.max(0,o-48),2.4);
 const youthF=a=>{a-=S.lg==='wnba'?2:0;return a<=22?1.4:a<=25?1.2:a<=28?1:a<=31?.8:a<=33?.6:.4};
 const sellV=x=>tvBaseV(x.o)*youthF(x.a), PICKV=()=>tvBaseV(66)*1.4;
-function logMove(m){S.moves=S.moves||[];m.yr=S.year;S.moves.unshift(m);S.moves=S.moves.slice(0,60)}
+function logMove(m){S.moves=S.moves||[];m.yr=S.year;if(m.a===S.team||m.b===S.team)m.my=1;S.moves.unshift(m);S.moves=S.moves.slice(0,800)}
 function moveP(x,from,to){S.ros[from]=S.ros[from].filter(y=>y!==x);S.ros[to].push(x);S.ros[to].sort((a,b)=>b.o-a.o)}
 /* one window of deals: at the deadline the standings decide buyers and sellers, in the summer last year's strength does */
 function cpuTrades(when){
@@ -1367,6 +1378,8 @@ function tvRefresh(before){const RT=rosTv();Object.keys(before).forEach(k=>{if(R
 function moveTxt(m,short2){
   const nm=l=>l.map(x=>x[0]).join(' and ');
   if(m.t==='fa')return `${nm(m.ga)} signs with the ${short(m.b)} (from ${short(m.a)})`;
+  if(m.t==='you')return `You were traded to the ${short(m.b)} (from ${short(m.a)})`;
+  if(m.t==='youfa')return `You signed with the ${short(m.b)} (from ${short(m.a)})`;
   const pk=m.pk?`${m.gb.length?' and ':''}${m.pk===1?'a first-round pick':m.pk+' first-round picks'}`:'';
   return `${short(m.b)} get ${nm(m.ga)} from ${short(m.a)} for ${nm(m.gb)}${pk}`;
 }
@@ -1405,7 +1418,6 @@ function rosterView(){
   return `<div class="muted small" style="margin-bottom:8px">${esc(depthTxt())}</div>
     ${rosTable(S.team)}
     <h4 class="sech" style="margin-top:14px">MVP race</h4><div class="track">${race.slice(0,5).map((x,i)=>`<div class="trow" data-team="${x.ab}"><span class="tag">${i+1}</span><div class="t2"><b>${esc(x.n)}${x.me?' (you)':''}</b><span>${esc(tName(x.ab))}</span></div>${crest(x.ab,20)}</div>`).join('')}${mi>=5?`<div class="trow"><span class="tag">${mi+1}</span><div class="t2"><b>${esc(S.name)} (you)</b><span>${esc(tName(S.team))}</span></div>${crest(S.team,20)}</div>`:''}</div>
-    ${(S.moves||[]).length?`<h4 class="sech" style="margin-top:14px">Transactions</h4>${movesHTML(S.moves.filter(m=>m.yr>=S.year-1),10)}`:''}
     ${S.retd&&S.retd.length?`<div class="muted small" style="margin-top:10px">Retired last summer: ${S.retd.slice(0,6).map(esc).join(', ')}</div>`:''}
     <div class="muted small" style="margin-top:8px;font-size:11.5px">Opening-day rosters from Basketball-Reference (October 2026). Ratings are estimates from last season's production and minutes.</div>`;
 }
@@ -1836,7 +1848,7 @@ function mkOffers(){
 }
 function sign(i){const of=S.off.offers[i],old=S.team;if(/Max/.test(of.kind))S.maxDeal=1;
   if(of.ab===old){fanAdd(old,4,'Re-signed');S.contract={kind:of.kind,until:S.year+of.yrs,from:S.year+1};newYear();save();render();return}
-  const back=playedFor(of.ab)||fanV(of.ab)!==0||isRival(old,of.ab); fanLeave(old,of.ab,'fa'); S.team=of.ab; S.contract={kind:of.kind,until:S.year+of.yrs,from:S.year+1};
+  const back=playedFor(of.ab)||fanV(of.ab)!==0||isRival(old,of.ab); logMove({t:'youfa',w:'su',a:old,b:of.ab,ga:[[S.name,ovr()]]}); fanLeave(old,of.ab,'fa'); S.team=of.ab; S.contract={kind:of.kind,until:S.year+of.yrs,from:S.year+1};
   if(back){S.off={step:'welcome',from:old,to:of.ab};save();render();return}
   newYear();save();render()}
 function summerRoll(r){
@@ -2201,7 +2213,7 @@ function tradeDest(req){
   let x=rnd()*w.reduce((a,b)=>a+b,0);for(let i=0;i<pool.length;i++){x-=w[i];if(x<=0)return pool[i]}return pool[0];
 }
 function moveTo(to,mid){
-  const old=S.team; fanLeave(old,to,S.req?'req':'trade'); S.team=to; S.traded=(S.traded||0)+1; S.req=false; S.role=roleAt(to,ovr(),tvBase(to));
+  const old=S.team; logMove({t:'you',w:mid?'dl':'su',a:old,b:to,ga:[[S.name,ovr()]],gb:[]}); fanLeave(old,to,S.req?'req':'trade'); S.team=to; S.traded=(S.traded||0)+1; S.req=false; S.role=roleAt(to,ovr(),tvBase(to));
   if(mid){const s=S.season;s.from=old;s.q.slice(s.qi+1).forEach(k=>{if(s.batches[k])s.batches[k].forEach(g=>{if(g.opp===to)g.opp=old})})}
   return old;
 }
@@ -2227,7 +2239,7 @@ function deadlineHero(st){
     tail=`<div class="sum num">d20 <b>${st.roll}</b> vs ${st.target}</div><div class="verdict v-mid result">Traded to the ${esc(tName(S.team))}</div><div class="muted small">New role: ${ROLES[S.role]}. ${esc(welcomeTxt(S.team,st.from))}</div>`;btn=`<button class="btn" data-act="next">Next</button>`}
   else{tail=`<div class="sum num">d20 <b>${st.roll}</b> vs ${st.target}</div><div class="verdict v-${st.blocked?'mid':'good'} result">${st.blocked?'Trade blocked':`You stay with the ${esc(short(S.team))}`}</div><div class="muted small">${st.blocked?'You used your no-trade clause.':S.req?'No deal got done. Your request stands into the summer.':((st.cpu||[]).some(m=>m.a===S.team||m.b===S.team)?'You stay, but your front office made a deal.':'The deadline passes quietly.')}</div>`;btn=`<button class="btn" data-act="next">Next</button>`}
   if(st.done&&st.cpu){const mine=st.cpu.filter(m=>m.a===S.team||m.b===S.team);
-    tail+=st.cpu.length?`<div class="dlnews"><span class="lbl">Around the league</span>${st.cpu.slice(0,3).map(m=>`<div class="${mine.includes(m)?'me':''}">${esc(moveTxt(m))}</div>`).join('')}${st.cpu.length>3?`<div class="muted">+${st.cpu.length-3} more in Season → Roster</div>`:''}</div>`:`<div class="dlnews muted">A quiet deadline around the league.</div>`}
+    tail+=st.cpu.length?`<div class="dlnews"><span class="lbl">Around the league</span>${st.cpu.slice(0,3).map(m=>`<div class="${mine.includes(m)?'me':''}">${esc(moveTxt(m))}</div>`).join('')}${st.cpu.length>3?`<div class="muted">+${st.cpu.length-3} more in Season → Trades</div>`:''}</div>`:`<div class="dlnews muted">A quiet deadline around the league.</div>`}
   return `<div class="stage"><div class="st-head"><span class="rk">${L().yl(S.year)}</span><span class="lbl">${esc(st.kicker)}</span><h3>${esc(st.title)}</h3></div>
     <div class="dicecol" data-act="${rolled?'':'roll'}">${vis}</div><div class="st-tail">${tail}</div><div class="st-act">${btn}</div></div>`;
 }
@@ -2339,14 +2351,34 @@ function upcoming(n){
   s.q.slice(s.qi+1).forEach(k=>{if(s.batches[k])s.batches[k].forEach(g=>out.push({...g,lbl:k==='cup'?'Cup':g.n}))});
   return out.slice(0,n);
 }
+
+/* ---------- Season → Trades: every move since your career began ---------- */
+let trF='all';
+function tradesView(){
+  const lg=L(), all=S.moves||[];
+  const f={all:()=>true,tr:m=>m.t==='trade'||m.t==='you',fa:m=>m.t==='fa'||m.t==='youfa',me:m=>m.my||m.t==='you'||m.t==='youfa'}[trF]||(()=>true);
+  const list=all.filter(f), groups=[];
+  list.forEach(m=>{const k=m.yr+'|'+m.w;let g=groups[groups.length-1];if(!g||g.k!==k){g={k,yr:m.yr,w:m.w,l:[]};groups.push(g)}g.l.push(m)});
+  const chips=[['all','All'],['tr','Trades'],['fa','Free agency'],['me','Your team']].map(([k,l])=>`<button class="chipbtn" data-act="trf" data-v="${k}" aria-pressed="${trF===k}">${l}</button>`).join('');
+  const pl=l=>l.map(x=>`<span class="tp">${esc(x[0])} <i>${x[1]}</i></span>`).join('');
+  const side=(ab,got,extra)=>`<div class="tside">${crest(ab,22)}<div><b data-team="${ab}">${esc(short(ab))}</b> <span class="muted">get</span><div class="tps">${got}${extra||''}${!got&&!extra?'<span class="tp muted">nothing</span>':''}</div></div></div>`;
+  const card=m=>{
+    const you=m.t==='you'||m.t==='youfa', tag=m.t==='trade'?'Trade':m.t==='fa'?'Free agency':m.t==='you'?'Your trade':'Your signing';
+    const body=m.t==='trade'?side(m.b,pl(m.ga))+side(m.a,pl(m.gb),m.pk?`<span class="tp pk">${m.pk===1?'1st-round pick':m.pk+' 1st-round picks'}</span>`:'')
+      :`<div class="tside">${crest(m.b,22)}<div><b data-team="${m.b}">${esc(short(m.b))}</b> <span class="muted">${m.t==='you'?'trade for':'sign'}</span><div class="tps">${pl(m.ga)}</div><span class="muted small">from the <b data-team="${m.a}">${esc(short(m.a))}</b></span></div></div>`;
+    return `<div class="tcard${you?' you':m.my?' my':''}"><span class="ttag">${tag}</span>${body}</div>`;
+  };
+  return `<div class="trbar">${chips}</div>${groups.length?groups.map(g=>`<h4 class="sech">${esc(lg.yl(g.yr))} · ${g.w==='dl'?'Trade deadline':'Offseason'}</h4><div class="tlist">${g.l.map(card).join('')}</div>`).join(''):`<div class="empty muted">${all.length?'Nothing here yet.':'No moves yet. The first deals come at the trade deadline.'}</div>`}`;
+}
 function seasonView(){
   const s=S.season, h=S.hist[S.hist.length-1], lg=L();
   if(!s)return `<section class="panel"><div class="empty">Your first season starts after the draft.</div></section>`;
   const ln=seasonLine(s), r=s.stand[S.team], tm=S.phase==='season'?S.team:h.team;
-  const head=`<section class="panel stack" style="gap:10px"><div class="seg"><div class="stack" style="gap:0;min-width:0"><span class="lbl" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(short(tm))} · ${S.phase==='season'?'this season':'last season'}</span><b style="font-size:17px">${lg.yl(s.yr)}</b></div>
-    <div class="subtabs" role="group"><button data-act="svtab" data-v="ov" aria-pressed="${svTab!=='po'&&svTab!=='ro'}">Season</button><button data-act="svtab" data-v="po" aria-pressed="${svTab==='po'}">Playoffs</button>${rosOf(S.team).length?`<button data-act="svtab" data-v="ro" aria-pressed="${svTab==='ro'}">Roster</button>`:''}</div></div>
+  const head=`<section class="panel stack" style="gap:10px"><div class="seg svseg"><div class="stack" style="gap:0;min-width:0"><span class="lbl" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(short(tm))} · ${S.phase==='season'?'this season':'last season'}</span><b style="font-size:17px">${lg.yl(s.yr)}</b></div>
+    <div class="subtabs" role="group"><button data-act="svtab" data-v="ov" aria-pressed="${svTab==='ov'}">Season</button><button data-act="svtab" data-v="po" aria-pressed="${svTab==='po'}">Playoffs</button>${rosOf(S.team).length?`<button data-act="svtab" data-v="ro" aria-pressed="${svTab==='ro'}">Roster</button><button data-act="svtab" data-v="tr" aria-pressed="${svTab==='tr'}">Trades</button>`:''}</div></div>
     <div class="numgrid"><div><span class="lbl">Record</span><b>${r.w}–${r.l}</b></div><div><span class="lbl">${s.seed?'Seed':'Place'}</span><b>${ord(s.seed||myPos())}</b></div><div><span class="lbl">PPG</span><b>${f1(ln.ppg)}</b></div><div><span class="lbl">RPG</span><b>${f1(ln.rpg)}</b></div><div><span class="lbl">APG</span><b>${f1(ln.apg)}</b></div></div></section>`;
   if(svTab==='ro')return head+`<section class="panel scrollp">${rosterView()}</section>`;
+  if(svTab==='tr')return head+`<section class="panel scrollp">${tradesView()}</section>`;
   if(ipMode&&svTab!=='po'){const P=overParts();return head+`<div class="ipgrid ip2"><div class="ipcol"><section class="panel grow"><h4 class="sech">Standings</h4>${P.tbl}</section></div><div class="ipcol"><section class="panel grow">${P.up}<h4 class="sech">Results</h4>${P.log}</section></div></div>`}
   return head+`<section class="panel scrollp">${svTab==='po'?poView():overView()}</section>`;
 }
@@ -2870,6 +2902,7 @@ document.addEventListener('click',e=>{
   const a=b.dataset.act, v=b.dataset.v;
   if(a==='tab'){view=v;render();return}
   if(a==='svtab'){svTab=v;render();return}
+  if(a==='trf'){trF=v;render();return}
   if(a==='cvm'){cvMetric=v;render();return}
   if(a==='achtab'){achTab=v;render();return}
   if(a==='reclg'){recLg=v;render();return}
