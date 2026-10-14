@@ -1031,7 +1031,7 @@ const SFX={
 const sfx=(k,...a)=>{try{if(soundOn&&ac())SFX[k](...a)}catch(e){}};
 
 /* ================= state ================= */
-const APP_VER='0.24';
+const APP_VER='0.24b';
 let setOpen=false, howOpen=false, quitArm=false;
 let diceFast=(()=>{try{return localStorage.getItem('rpglass-dice')==='fast'}catch(e){return false}})();
 let allSpd=(()=>{try{return localStorage.getItem('rpglass-allspd')||'f'}catch(e){return'f'}})();
@@ -1070,6 +1070,8 @@ function load(){try{const x=JSON.parse(localStorage.getItem(SAVE));if(x&&x.v===2
 function save(){if(S&&S.phase!=='create'){try{checkRecords();checkAch()}catch(e){console.error(e)}}if(S){S.rev=(S.rev||0)+1;S.savedAt=Date.now()}try{localStorage.setItem(SAVE,JSON.stringify(S))}catch(e){}if(window.cloudSync)window.cloudSync()}
 function hof(){try{return JSON.parse(localStorage.getItem(HOFKEY))||[]}catch(e){return[]}}
 function saveHof(h){try{localStorage.setItem(HOFKEY,JSON.stringify(h))}catch(e){}}
+/* a career started on purpose: the account's older career must not be loaded over it */
+function freshNew(lg){const o=S,n=fresh(lg);n.newc=1;if(o&&o.synced)n.synced=1;return n}
 function fresh(lg){lg=lg||'nba';return {v:2,cid:Date.now().toString(36)+Math.random().toString(36).slice(2,6),phase:'create',cr:{lg,name:randName(lg),pos:null,hd:null,rolls:{},style:null}}}
 function randName(lg){return `${pick(FIRST[lg==='wnba'?'f':'m'])} ${pick(LAST)}`}
 
@@ -2801,7 +2803,7 @@ document.addEventListener('click',e=>{
   if(a==='dicespd'){diceFast=v==='f';try{localStorage.setItem('rpglass-dice',diceFast?'fast':'normal')}catch(_){}render();return}
   if(a==='allspd'){allSpd=v;try{localStorage.setItem('rpglass-allspd',v)}catch(_){}render();return}
   if(a==='howto'){howOpen=true;setOpen=false;render();return}
-  if(a==='quit'){if(!quitArm){quitArm=true;render();return}quitArm=false;setOpen=false;lbAll=false;S=fresh(S.lg||'nba');view='game';save();render();return}
+  if(a==='quit'){if(!quitArm){quitArm=true;render();return}quitArm=false;setOpen=false;lbAll=false;S=freshNew(S.lg||'nba');view='game';save();render();return}
   if(a==='theme'){theme=v||(theme==='auto'?'light':theme==='light'?'dark':'auto');try{localStorage.setItem('rpglass-theme',theme)}catch(_){}render();return}
   if(a==='sound'){soundOn=v?v==='on':!soundOn;try{localStorage.setItem('rpglass-sound',soundOn?'on':'off')}catch(_){}if(soundOn)sfx('click');render();return}
   if(a==='hoflg'){hofLg=v;render();return}
@@ -2809,7 +2811,7 @@ document.addEventListener('click',e=>{
   if(S.phase==='create')return onCreate(a,v);
   if(a==='draft'&&!S.draft){const r=d(20);rollDice([document.querySelector('[data-die="main"]')],20,[r],dieCls(20),()=>{doDraft(r);save();render();sfx(S.draft.und?'fail':S.draft.p<=14?'nat20':'pass')});return}
   if(a==='rookie'){acceptDraft();render();sfx('click');return}
-  if(a==='newcar'){S=fresh(S.lg);view='game';save();render();return}
+  if(a==='newcar'){S=freshNew(S.lg);view='game';save();render();return}
   if(a==='req'&&S.phase==='season'){S.req=!S.req;fanAdd(S.team,S.req?-4:2,S.req?'Asked for a trade':'Withdrew the trade request');save();render();sfx('click');return}
   if(S.phase!=='season'||!S.season||!S.season.cur)return;
   const s=S.season, st=s.cur;

@@ -39,8 +39,9 @@
     if (!cloud || !cloud.phase) return 'local';
     if (!local || !local.phase) return 'cloud';
     if (cloud.cid === local.cid && (cloud.rev || 0) === (local.rev || 0)) return 'same';
-    if (local.phase === 'create' && cloud.phase !== 'create' && !local.synced) return 'cloud';   // a fresh device never wipes a real career
+    if (local.phase === 'create' && cloud.phase !== 'create' && !local.synced && !local.newc) return 'cloud';   // a fresh device never wipes a real career
     if (cloud.phase === 'create' && local.phase !== 'create') return 'local';
+    if (local.newc && cloud.cid !== local.cid) return 'local';   // you chose to start over: keep the new career
     if (cloud.cid === local.cid) { const a = progress(cloud), b = progress(local); return a > b ? 'cloud' : b > a ? 'local' : ((cloud.rev || 0) > (local.rev || 0) ? 'cloud' : 'local'); }
     return (cloud.savedAt || 0) > (local.savedAt || 0) ? 'cloud' : 'local';      // two different careers: the one played last wins
   }
@@ -64,7 +65,7 @@
     if (d === 'cloud') { adopt(data.career, T.newer); }
     const hof = mergeHof(readJ(HOFK, []), data && data.hof); writeJ(HOFK, hof);
     const ach = mergeAch(readJ(ACHK, {}), data && data.ach); writeJ(ACHK, ach);
-    if (d !== 'cloud') { S.synced = 1; writeJ(SAVEK, S); }
+    if (d !== 'cloud') { S.synced = 1; delete S.newc; writeJ(SAVEK, S); }
     const { error: e2 } = await sb.from(TABLE).upsert({ user_id: user.id, career: S, hof, ach, updated_at: new Date().toISOString() });
     status = e2 ? 'err' : 'ok'; refresh();
   }

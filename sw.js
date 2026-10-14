@@ -1,5 +1,5 @@
 // RPGlass offline support. Change VERSION whenever you upload new files.
-const VERSION = 'rpglass-0.24';
+const VERSION = 'rpglass-0.24b';
 const CORE = ['./', './index.html', './config.js', './cloud.js', './manifest.webmanifest', './favicon.svg',
   './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
