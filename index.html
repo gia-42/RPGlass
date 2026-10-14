@@ -725,11 +725,11 @@ const STYLES={
   SF:[['sc','Shot Creator',['sho','fin'],{pts:1.15,ast:.9},'Gets to any spot on the floor.'],
       ['pf','Point Forward',['ply','iq'],{ast:1.4,pts:.9},'Initiates the offense from the wing.'],
       ['lw','Lockdown Wing',['def','ath'],{pts:.85,reb:1.05},'Takes the toughest assignment every night.']],
-  PF:[['st','Stretch Four',['sho','iq'],{pts:1.05,reb:.9},'Pulls bigs out to the three-point line.'],
+  PF:[['st','Stretch Four',['sho','reb'],{pts:1.05,reb:.9},'Pulls bigs out to the three-point line.'],
       ['br','Bruiser',['reb','fin'],{reb:1.15},'Owns the paint and the offensive glass.'],
       ['do','Do-It-All',['ply','reb'],{ast:1.35},'Grab, push, find the open man.']],
   C:[['rp','Rim Protector',['def','reb'],{reb:1.1,pts:.85},'Nothing easy at the rim.'],
-     ['sb','Stretch Big',['sho','iq'],{pts:1.05,reb:.9},'A seven-footer who lets it fly.'],
+     ['sb','Stretch Big',['sho','def'],{pts:1.05,reb:.9},'A seven-footer who lets it fly.'],
      ['po','Post Scorer',['fin','reb'],{pts:1.12},'Back to the basket, footwork for days.']]
 };
 const ROLES=['Deep bench','Rotation','Sixth man','Starter','Star','Franchise'];
@@ -738,7 +738,7 @@ const MINS=[9,18,25,31,34,36];
 const TIERS=['','Rebuilding','Lottery','Play-in','Playoff team','Contender'];
 /* [abbr, name, conference, division, colour 1, colour 2, starting strength 1-5] */
 const NBA=[
- ['BOS','Boston Celtics','E','Atlantic','#007A33','#FFFFFF',3.4],['BKN','Brooklyn Nets','E','Atlantic','#000000','#FFFFFF',1.5],['NYK','New York Knicks','E','Atlantic','#006BB6','#F58426',4.4],
+ ['BOS','Boston Celtics','E','Atlantic','#007A33','#FFFFFF',3.4],['BKN','Brooklyn Nets','E','Atlantic','#000000','#FFFFFF',1.5],['NYK','New York Knicks','E','Atlantic','#006BB6','#F58426',5.1],
  ['PHI','Philadelphia 76ers','E','Atlantic','#006BB6','#ED174C',3],['TOR','Toronto Raptors','E','Atlantic','#CE1141','#000000',2.6],
  ['CHI','Chicago Bulls','E','Central','#CE1141','#000000',2.5],['CLE','Cleveland Cavaliers','E','Central','#860038','#FDBB30',4.5],['DET','Detroit Pistons','E','Central','#C8102E','#1D42BA',3.6],
  ['IND','Indiana Pacers','E','Central','#002D62','#FDBB30',2.4],['MIL','Milwaukee Bucks','E','Central','#00471B','#EEE1C6',3],
@@ -993,7 +993,7 @@ const SFX={
 const sfx=(k,...a)=>{try{if(soundOn&&ac())SFX[k](...a)}catch(e){}};
 
 /* ================= state ================= */
-const APP_VER='0.19';
+const APP_VER='0.20';
 let setOpen=false, howOpen=false, quitArm=false;
 let diceFast=(()=>{try{return localStorage.getItem('rpglass-dice')==='fast'}catch(e){return false}})();
 let allSpd=(()=>{try{return localStorage.getItem('rpglass-allspd')||'f'}catch(e){return'f'}})();
@@ -1049,7 +1049,7 @@ const tierOf=v=>clamp(Math.round(v),1,5);
 function basePM(){const pm=clamp(Math.floor((ovr()-66)/5),-3,6);return pm*[.3,.55,.75,.9,1,1.1][S.role]}
 const youMod=()=>out()?0:clamp(Math.round(basePM()*.6),-3,4);
 const teamMod=()=>Math.round((effV()-3)*1.5);
-const clutchMod=()=>out()?0:clamp(Math.floor((S.attrs.clu-10)/3),-2,4);
+const clutchMod=()=>out()?0:clamp(Math.floor((S.attrs.clu-9)/3),-1,2);
 const DC=ab=>11+Math.round((teamV(ab)-3)*1.5);
 function roleFor(o,v){let r=0;ROLE_TH.forEach((t,i)=>{if(o>=t)r=i});if(v>=4.2&&r>0&&o<ROLE_TH[r]+3)r--;return r}
 const odds=(mod,target)=>Math.round(clamp((21-(target-mod))/20,.05,.95)*100);
@@ -1082,8 +1082,8 @@ function crAttrs(cr){
 }
 const allRolled=cr=>AK.every(k=>cr.rolls[k]);
 /* ================= scouting projection ================= */
-/* from 4,800 simulated careers (0.19): [ovr0 bucket start, median peak, 90th pct peak, All-Star %, MVP %, ring %, Hall of Fame %] */
-const PROJ={"nba":[[46,65,67,0,0,0,0],[49,67,73,4,0,11,0],[52,71,76,10,0,13,0],[55,74,79,25,0,20,2],[58,77,82,44,3,28,10],[61,81,86,67,11,44,33],[64,83,88,80,26,58,49],[67,86,91,93,49,75,83],[70,89,93,88,69,77,100]],"wnba":[[46,62,66,0,0,0,0],[49,65,71,3,0,19,0],[52,69,73,6,0,16,0],[55,72,75,22,0,32,1],[58,75,78,47,0,42,10],[61,78,82,70,1,50,24],[64,81,84,84,15,59,51],[67,84,88,89,31,75,84],[70,87,90,100,64,86,100]]};
+/* from 4,800 simulated careers (0.20): [ovr0 bucket start, median peak, 90th pct peak, All-Star %, MVP %, ring %, Hall of Fame %] */
+const PROJ={"nba":[[49,69,73,2,0,36,0],[52,72,76,10,0,38,0],[55,75,79,23,0,46,3],[58,78,83,45,2,57,9],[61,81,85,64,10,63,25],[64,84,88,84,29,69,45],[67,87,91,95,53,71,67],[70,89,94,95,77,69,90]],"wnba":[[49,65,70,0,0,52,1],[52,69,73,7,0,58,1],[55,72,76,24,0,61,3],[58,75,79,53,0,65,8],[61,78,81,70,2,71,27],[64,81,84,85,10,72,49],[67,84,87,89,32,80,79],[70,87,92,90,66,86,93]]};
 function projectFor(o,lg){
   const T=PROJ[lg], x=o-1.5;
   let i=0;while(i<T.length-2&&x>=T[i+1][0])i++;
@@ -1191,11 +1191,12 @@ function projVerdict(){const p=S.proj;if(!p||!S.hist.length)return'';const pk=Ma
 
 
 /* ================= career ================= */
+const CHAMPS={nba:'NYK'};   /* reigning champions start at the top, with little preseason swing */
 function startCareer(){
   const cr=S.cr, lg=LG[cr.lg], proj=cr.pos&&cr.style&&allRolled(cr)?scoutFor(cr):null;
   S={v:2,cid:Date.now().toString(36)+Math.random().toString(36).slice(2,6),phase:'draft',lg:cr.lg,name:(cr.name||'').trim()||randName(cr.lg),pos:cr.pos,style:cr.style,height:heightIn(cr),attrs:crAttrs(cr),
     age:lg.age(),year:lg.start,team:null,role:0,contract:null,tv:{},hist:[],draft:null,season:null,off:null,ovr0:null,champs:[]};
-  lg.teams.forEach(t=>S.tv[t[0]]=clamp(t[6]+(rnd()-.5)*1.4,1,5.2));
+  lg.teams.forEach(t=>S.tv[t[0]]=clamp(t[6]+(rnd()-.5)*(CHAMPS[cr.lg]===t[0]?.3:1.4),1,5.2));
   S.hd=cr.hd; S.tens=AK.filter(k=>cr.rolls[k]===10).length; S.recs={}; S.fans={}; S.fanLog=[]; S.stints=[];
   S.ovr0=ovr(); S.proj=proj; S.at0={...S.attrs}; save();
 }
@@ -1209,7 +1210,7 @@ function doDraft(r){
   const contract=und?{kind:S.lg==='nba'?'Two-way':'Training camp',yrs:1}:rd===1?{kind:'Rookie scale',yrs:4}:{kind:S.lg==='nba'?'Second-round deal':'Rookie deal',yrs:S.lg==='nba'?2:3};
   S.draft={r,score,p,und,rd,ab,role,contract,inRound:und?0:((p-1)%n)+1};
 }
-function acceptDraft(){const D=S.draft;S.team=D.ab;S.role=D.role;S.contract={kind:D.contract.kind,until:S.year+D.contract.yrs-1};S.rookieYear=S.year;S.phase='season';fanAdd(D.ab,D.und?1:D.p<=5?6:3,'Drafted');newSeason();save()}
+function acceptDraft(){const D=S.draft;S.team=D.ab;S.role=D.role;S.contract={kind:D.contract.kind,until:S.year+D.contract.yrs-1,from:S.year};S.rookieYear=S.year;S.phase='season';fanAdd(D.ab,D.und?1:D.p<=5?6:3,'Drafted');newSeason();save()}
 
 /* ---------- schedule ---------- */
 function mkSchedule(cupOpps){
@@ -1298,14 +1299,20 @@ function mkStage(k){
   }
   return st;
 }
+/* playoff games are priced off the same win chance the CPU league uses; your own modifiers nudge it */
+const isPO=st=>st&&(st.type==='series'||!!st.po);
+const stDC=st=>isPO(st)?11:DC(st.opp);
+function poEdge(opp,home){const p=clamp(.5+(teamV(S.team)-teamV(opp))*.09+(home==null?0:home?.04:-.04),.08,.92);return Math.round(20*(p-.5))}
 function stageMods(st,g){
-  const home=g?g.home:st.home, m=[['You',youMod()],['Team',teamMod()]];
-  if(st.po||st.clutch)m.push(['Clutch',clutchMod()]);
-  if(st.type==='series')m.push(['Pressure',st.final?-2:-1]);
-  if(st.type==='series'&&st.big&&!out()){const rg=(S.hist||[]).reduce((a,h)=>a+h.ring,0);if(rg)m.push(['Ring experience',1])}
+  const home=g?g.home:st.home, po=isPO(st), m=po?[['Matchup',poEdge((g&&g.opp)||st.opp,home)]]:[['You',youMod()],['Team',teamMod()]];
+  /* Clutch counts in clutch moments: Play-In, cup knockouts and any series game that can end the series */
+  if(st.type==='series'){const n=Math.ceil(st.bo/2);if(st.my===n-1||st.op===n-1)m.push(['Clutch',clutchMod()])}
+  else if(st.po||st.clutch)m.push(['Clutch',clutchMod()]);
+  if(st.type==='series'&&st.final)m.push(['Pressure',-1]);
+  if(st.type==='series'&&st.final&&!out()){const rg=(S.hist||[]).reduce((a,h)=>a+h.ring,0);if(rg)m.push(['Ring experience',1])}
   if(['pf','tw'].includes(S.style)&&S.role>=3&&!out())m.push(['Teammates',1]);
-  if(home!=null)m.push([home?'Home':'Road',home?1:-1]);
-  const opp=g?g.opp:st.opp;
+  if(home!=null&&!po)m.push([home?'Home':'Road',home?1:-1]);
+  const opp=(g&&g.opp)||st.opp;
   if(home===true){const c=crowdMod(S.team);if(c)m.push([c>0?'Crowd':'Home boos',c])}
   else if(opp&&fanT(opp)<=1&&home!==null)m.push(['Booed',-1]);
   return m;
@@ -1461,7 +1468,7 @@ function completeBracket(){
 function resolveSingle(r){
   const s=S.season, st=s.cur;
   if(st.type==='vote'){st.roll=r;st.total=r+modSum(st.mods);st.ok=r===20||(r!==1&&st.total>=st.target);st.start=st.ok&&st.total>=st.starter;s.allStar=st.ok?(st.start?2:1):0;st.res=st.ok?(st.start?'Starter':'Reserve'):'Snubbed';st.cls=st.ok?'w':'p';st.done=true;return}
-  st.mods=stageMods(st); st.roll=r; st.total=r+modSum(st.mods); st.target=DC(st.opp); st.ok=r===20||(r!==1&&st.total>=st.target);
+  st.mods=stageMods(st); st.roll=r; st.total=r+modSum(st.mods); st.target=stDC(st); st.ok=r===20||(r!==1&&st.total>=st.target);
   st.sc=finalScore(st.ok,st.total-st.target); st.done=true; st.cls=st.ok?'w':'l';
   if(s.out>0)s.out--;
   if(st.k==='pi'){
@@ -1482,7 +1489,7 @@ function resolveSingle(r){
     else if(st.k==='cupsf'){C.next=C.otherChamp;s.q.splice(s.qi+1,0,'cupf')}
   }
 }
-function evalSeriesGame(st,i,r){const g=st.games[i],m=stageMods(st,g),tot=r+modSum(m),dc=DC(st.opp),ok=r===20||(r!==1&&tot>=dc);return {m,tot,dc,ok}}
+function evalSeriesGame(st,i,r){const g=st.games[i],m=stageMods(st,g),tot=r+modSum(m),dc=stDC(st),ok=r===20||(r!==1&&tot>=dc);return {m,tot,dc,ok}}
 function playSeriesGame(st,i,r){
   const s=S.season, g=st.games[i], n=Math.ceil(st.bo/2);
   if(st.my>=n||st.op>=n){g.r=r;g.dropped=true;return}
@@ -1523,13 +1530,13 @@ function awards(){
     if(A.def>=16&&S.role>=3&&rnd()<.15+dSty+(A.def-16)*.12)a.push('Defensive Player of the Year');
     if(aN>=9&&S.role>=3&&rnd()<.4+(aN-9)*.15+(S.style==='fg'?.2:0))a.push('Assists leader');
     if(A.def>=14&&S.role>=3&&rnd()<.6)a.push('All-Defensive Team');
-    if(pN>=30.5&&rnd()<.4+(pN-30.5)*.12)a.push('Scoring title');
-    if(A.clu>=17&&S.role>=3&&rnd()<.3)a.push('Clutch Player of the Year');
+    if(pN>=27&&rnd()<.2+(pN-27)*.1)a.push('Scoring title');
+    if(A.clu>=14&&S.role>=3&&rnd()<.3)a.push('Clutch Player of the Year');
   }
   if(rookie&&score>=27&&rnd()<.75)a.push('Rookie of the Year');
   if(rookie&&score>=22)a.push('All-Rookie Team');
   if(S.role===2&&pN>=14&&rnd()<.5)a.push('Sixth Player of the Year');
-  if(!rookie&&last&&o-last.ovr>=5&&pN-last.ppg/lg.sc>=4&&rnd()<.55)a.push('Most Improved Player');
+  if(!rookie&&last&&o-last.ovr>=5&&pN-last.ppg/lg.sc>=3&&rnd()<.55)a.push('Most Improved Player');
   if(s.allStar)a.push(s.allStar===2?'All-Star starter':'All-Star');
   if(s.cup.mvp)a.push(`${lg.cupNm} MVP`);
   if(s.fmvp)a.push('Finals MVP');
@@ -1547,7 +1554,7 @@ function finishSeason(){
 /* legacy is judged by what each position does: rebounds and assists count with position weights,
    and each playstyle gets a factor (calibrated on 3,200 simulated careers) so every build has the same shot at the Hall of Fame */
 const LEGW={PG:[1.0,2.0],SG:[1.2,1.6],SF:[1.3,1.6],PF:[1.3,1.8],C:[1.2,2.0]};
-const LEGF={"nba":{"C:po":0.97,"C:rp":1.05,"C:sb":1.4,"PF:br":0.96,"PF:do":1.18,"PF:st":1.36,"PG:fg":0.74,"PG:sg":0.96,"PG:tw":1.13,"SF:lw":1.08,"SF:pf":1.24,"SF:sc":0.93,"SG:3d":1.08,"SG:sl":0.92,"SG:ss":0.7},"wnba":{"C:po":0.94,"C:rp":1.02,"C:sb":1.46,"PF:br":0.97,"PF:do":1.12,"PF:st":1.35,"PG:fg":0.72,"PG:sg":0.92,"PG:tw":1.27,"SF:lw":1.02,"SF:pf":1.21,"SF:sc":0.91,"SG:3d":1.13,"SG:sl":0.98,"SG:ss":0.65}};
+const LEGF={"nba":{"C:po":0.86,"C:rp":0.95,"C:sb":1.03,"PF:br":0.85,"PF:do":1.04,"PF:st":1.03,"PG:fg":0.69,"PG:sg":0.86,"PG:tw":1.0,"SF:lw":0.92,"SF:pf":1.11,"SF:sc":0.87,"SG:3d":1.1,"SG:sl":0.99,"SG:ss":0.74},"wnba":{"C:po":0.85,"C:rp":0.93,"C:sb":1.03,"PF:br":0.82,"PF:do":1.02,"PF:st":1.08,"PG:fg":0.66,"PG:sg":0.89,"PG:tw":1.16,"SF:lw":0.9,"SF:pf":1.05,"SF:sc":0.83,"SG:3d":1.11,"SG:sl":0.95,"SG:ss":0.74}};
 const awLeg=x=>/^MVP$/.test(x)?16:/Finals MVP/.test(x)?8:/Defensive Player/.test(x)?8:/1st Team/.test(x)?5:/2nd Team|3rd Team/.test(x)?3:/Assists leader/.test(x)?3:/Rookie of/.test(x)?3:/^All-Star/.test(x)?2:/All-Defensive/.test(x)?2:1;
 function legacy(H,pos,style,lg){
   pos=pos||S.pos; style=style||S.style; lg=lg||S.lg; const [wr,wa]=LEGW[pos]||[1.2,1.6];
@@ -1569,7 +1576,7 @@ function offNext(from){
     if(S.year>=S.contract.until){
       const offers=mkOffers(); if(!offers.length){S.off={step:'end',why:'Free agency comes and goes without an offer.'};endCareer();return}
       S.off={step:'fa',offers};return}
-    {const req=!!S.req,pr=req?.7:S.role<=3?.08:0;if(rnd()<pr){const nt=tradeDest(req),old=moveTo(nt,false);S.off={step:'trade',from:old,to:nt,req};return}}
+    {const req=!!S.req,fresh2=S.contract&&S.contract.from!=null&&S.year-S.contract.from<2,pr=req?.7:S.role<=3&&!fresh2?.04:0;if(rnd()<pr){const nt=tradeDest(req),old=moveTo(nt,false);S.off={step:'trade',from:old,to:nt,req};return}}
     newYear();return}
   newYear();
 }
@@ -1578,7 +1585,7 @@ function legendTarget(ab){return clamp(7+(fanT(ab)<=1?5:fanT(ab)>=5?-2:0)+(isRiv
 function legendGo(){
   const O=S.off, to=O.pick, fa=S.year>=S.contract.until;
   if(!O.ok){if(fa){offNext('legend');return}offNext('legend');return}
-  if(fa){const old=S.team;fanLeave(old,to,'fa');S.team=to;S.contract={kind:'Farewell deal',until:S.year+1+(rnd()<.5?1:0)};S.off={step:'welcome',from:old,to,legend:1};return}
+  if(fa){const old=S.team;fanLeave(old,to,'fa');S.team=to;S.contract={kind:'Farewell deal',until:S.year+1+(rnd()<.5?1:0),from:S.year+1};S.off={step:'welcome',from:old,to,legend:1};return}
   S.req=true;const old=moveTo(to,false);S.off={step:'trade',from:old,to,req:true,legend:1};
 }
 function newYear(){
@@ -1600,8 +1607,8 @@ function mkOffers(){
     return {ab,v,r,kind,yrs,own:ab===S.team}});
 }
 function sign(i){const of=S.off.offers[i],old=S.team;if(/Max/.test(of.kind))S.maxDeal=1;
-  if(of.ab===old){fanAdd(old,4,'Re-signed');S.contract={kind:of.kind,until:S.year+of.yrs};newYear();save();render();return}
-  const back=playedFor(of.ab)||fanV(of.ab)!==0||isRival(old,of.ab); fanLeave(old,of.ab,'fa'); S.team=of.ab; S.contract={kind:of.kind,until:S.year+of.yrs};
+  if(of.ab===old){fanAdd(old,4,'Re-signed');S.contract={kind:of.kind,until:S.year+of.yrs,from:S.year+1};newYear();save();render();return}
+  const back=playedFor(of.ab)||fanV(of.ab)!==0||isRival(old,of.ab); fanLeave(old,of.ab,'fa'); S.team=of.ab; S.contract={kind:of.kind,until:S.year+of.yrs,from:S.year+1};
   if(back){S.off={step:'welcome',from:old,to:of.ab};save();render();return}
   newYear();save();render()}
 function summerRoll(r){
@@ -1784,7 +1791,7 @@ function seriesHero(st){
   const dice=st.games.slice(0,vis).map((g,i)=>{const c=g.r==null?'':g.dropped?'dropped':g.r===20?'crit':g.r===1?'fumble':g.ok?'win':'lose';
     return `<button class="dbtn" data-act="sroll" ${over||g.r!=null?'disabled':''}>${dieSVG(20,g.r??'?',c,'sg'+i)}<span class="lbl">G${i+1} ${g.home?'H':'A'}</span></button>`}).join('');
   let tail='';
-  if(!over){const m=stageMods(st,ng),dc=DC(st.opp);
+  if(!over){const m=stageMods(st,ng),dc=stDC(st);
     const last=st.mi>0?st.games[st.mi-1]:null;
     tail=`${last?`<div class="sum num">G${st.mi}: ${scoreTxt(last.ok,last.sc)}${last.line?` · ${last.line.pts} pts`:''}</div>`:''}<div class="muted small">Game ${st.mi+1} · ${ng.home?'Home':'Road'}</div><div class="mods">${chipsFor(m,dc)}</div>`}
   else{tail=`<div class="verdict v-${st.ok?'good':'bad'} result">${st.ok?(st.final?'Champions!':'Series won'):'Series lost'} ${st.my}–${st.op}</div>${st.ok&&st.final&&s.fmvp?'<div class="banner result">Finals MVP</div>':''}${s.ppts&&s.pgp?`<div class="muted small num">Playoffs: ${f1(s.ppts/s.pgp)} PPG in ${s.pgp} games</div>`:''}`}
@@ -1801,7 +1808,7 @@ function singleHero(st){
   const dcls=rolled?(st.roll===20?'crit':st.roll===1?'fumble':st.ok?'win':'lose'):'';
   let tail='',btn='';
   if(st.type==='skip'){tail=`<div class="evbox">${esc(st.sub)}</div>`;btn=`<button class="btn" data-act="next">Continue</button>`}
-  else if(!rolled){const m=st.type==='vote'?st.mods:stageMods(st),dc=st.type==='vote'?st.target:DC(st.opp);tail=`<div class="mods">${chipsFor(m,dc)}</div><div class="muted small">${esc(st.sub)}</div>`;btn=`<button class="btn" data-act="roll">Roll d20</button>`}
+  else if(!rolled){const m=st.type==='vote'?st.mods:stageMods(st),dc=st.type==='vote'?st.target:stDC(st);tail=`<div class="mods">${chipsFor(m,dc)}</div><div class="muted small">${esc(st.sub)}</div>`;btn=`<button class="btn" data-act="roll">Roll d20</button>`}
   else{
     const v=st.type==='vote'?(st.ok?(st.start?'All-Star starter':'All-Star reserve'):'Snubbed'):st.res;
     tail=`${sumOf(st.roll,st.mods,st.total,st.target)}<div class="verdict v-${st.ok?'good':'bad'} result">${esc(v)}</div>${st.sc?`<div class="muted small num">${scoreTxt(st.ok,st.sc)}</div>`:''}${st.cup&&st.final&&st.ok?`<div class="cuptro">${trophySVG('cup')}</div>`:''}${st.cup&&st.final&&st.ok&&s.cup.mvp?`<div class="banner result">${esc(lg.cupNm)} MVP</div>`:''}`;
@@ -2454,7 +2461,7 @@ document.addEventListener('click',e=>{
   const s=S.season, st=s.cur;
   if(a==='lbopen'&&st.type==='batch'){s.lbOpen=true;save();render();sfx('click');return}
   if(a==='roll'&&(st.type==='single'||st.type==='vote')&&st.roll==null){
-    const r=d(20), dc=st.type==='vote'?st.target:DC(st.opp), m=st.type==='vote'?st.mods:stageMods(st), ok=r===20||(r!==1&&r+modSum(m)>=dc);
+    const r=d(20), dc=st.type==='vote'?st.target:stDC(st), m=st.type==='vote'?st.mods:stageMods(st), ok=r===20||(r!==1&&r+modSum(m)>=dc);
     rollDice([document.querySelector('[data-die="main"]')],20,[r],v=>v===20?'crit':v===1?'fumble':ok?'win':'lose',()=>{resolveSingle(r);save();render();sfx(st.ok?(st.final&&st.cup?'title':st.po||st.cup?'qual':'pass'):'fail')});return}
   if(a==='sroll'&&st.type==='series'&&!st.done){rollSeries(st,false);return}
   if(a==='sall'&&st.type==='series'&&!st.done){rollSeries(st,true);return}
