@@ -1067,7 +1067,7 @@ const SFX={
 const sfx=(k,...a)=>{try{if(soundOn&&ac())SFX[k](...a)}catch(e){}};
 
 /* ================= state ================= */
-const APP_VER='0.30';
+const APP_VER='0.31';
 let setOpen=false, howOpen=false, quitArm=false;
 let diceFast=(()=>{try{return localStorage.getItem('rpglass-dice')==='fast'}catch(e){return false}})();
 let allSpd=(()=>{try{return localStorage.getItem('rpglass-allspd')||'f'}catch(e){return'f'}})();
@@ -1274,6 +1274,8 @@ const ROSTERS={"nba":{"BOS":[["Jayson Tatum","SF",86,28,80,9],["Derrick White","
 function rosInit(){S.ros={};S.pidN=0;const R=ROSTERS[S.lg]||{};Object.entries(R).forEach(([ab,list])=>S.ros[ab]=list.map(r=>({id:'p'+(S.pidN++),n:r[0],p:r[1],o:r[2],a:r[3],e:r[5],h:r[4]})));S.rosN=rosNorm()}
 function rosIds(){if(!S||!S.ros||S.idsOK)return;S.pidN=S.pidN||0;Object.values(S.ros).forEach(l=>l.forEach(x=>{if(!x.id)x.id='p'+(S.pidN++)}));S.idsOK=1}
 /* the league's rating scale stays put: each summer the top 10 of every roster is rescaled to the opening-day mean and spread */
+let rosQc=null;
+function rosQ(){if(rosQc&&rosQc.lg===S.lg)return rosQc.q;const q=Object.values(ROSTERS[S.lg]||{}).flat().map(r=>r[2]).sort((a,b)=>b-a);rosQc={lg:S.lg,q};return q}
 function rosNorm(){const v=Object.values(S.ros).flatMap(l=>l.map(x=>x.o).sort((a,b)=>b-a).slice(0,10)),m=v.reduce((a,b)=>a+b,0)/v.length;return {m,sd:Math.sqrt(v.reduce((a,b)=>a+(b-m)**2,0)/v.length)||1}}
 const rosOf=ab=>(S&&S.ros&&S.ros[ab])||[];
 const RW=[1,.95,.9,.8,.7,.6,.5,.4];
@@ -1281,7 +1283,7 @@ function rosStr(ab){const v=rosOf(ab).map(x=>x.o).sort((a,b)=>b-a).slice(0,8);if
 /* roster strength mapped onto the 1–5.2 team scale within the league */
 function rosTv(){const lg=L(),v=lg.teams.map(t=>rosStr(t[0])).filter(x=>x!=null);if(v.length<lg.teams.length)return {};
   const m=v.reduce((a,b)=>a+b,0)/v.length, sd=Math.sqrt(v.reduce((a,b)=>a+(b-m)**2,0)/v.length)||1, out={};
-  lg.teams.forEach(t=>out[t[0]]=clamp(3+(rosStr(t[0])-m)/sd*.8,1,5.2));return out}
+  lg.teams.forEach(t=>out[t[0]]=clamp(3+(rosStr(t[0])-m)/sd*(S.lg==='nba'?1.15:1.0),1,5.2));return out}
 const rstar=ab=>rosOf(ab).reduce((b,x)=>!b||x.o>b.o?x:b,null);
 /* one offseason: everyone ages, the young improve, veterans fade, some retire and a draft class arrives */
 function rosYear(){
@@ -1296,14 +1298,15 @@ function rosYear(){
   const order=lg.teams.map(t=>t[0]).sort((a,b)=>tvBase(a)-tvBase(b)); let n=0;
   for(let rd=0;rd<2;rd++)order.forEach(ab0=>{n++;let ab=ab0;if(rd===0&&S.owe){const oi=S.owe.findIndex(o=>o.from===ab0);if(oi>=0){ab=S.owe[oi].to;S.owe.splice(oi,1)}}S.pidN=S.pidN||0;S.ros[ab].push({id:'p'+(S.pidN++),dr:[S.year+1,rd+1,n,tName(ab),ab0!==ab?ab0:null],n:randName(S.lg),p:pick(Object.keys(POS)),o:Math.round(clamp(69-n*(S.lg==='wnba'?.7:.35)+(rnd()-.5)*8,45,76)),a:S.lg==='wnba'?21+d(2):18+d(3),e:0,r:1,pk:n})});
   Object.keys(S.ros).forEach(ab=>{S.ros[ab].sort((a,b)=>b.o-a.o);S.ros[ab]=S.ros[ab].slice(0,size)});
-  if(S.rosN){const N=rosNorm();Object.values(S.ros).forEach(l=>l.forEach(x=>x.o=Math.round(clamp(S.rosN.m+(x.o-N.m)*S.rosN.sd/N.sd,40,98))))}
+  /* every summer the league's ratings are mapped back onto the opening-day spread by rank, so the number of stars stays real */
+  {const Q=rosQ(),all=Object.values(S.ros).flat().map(x=>({x,k:x.o+rnd()*.5})).sort((a,b)=>b.k-a.k),n=all.length;if(Q.length&&n>1)all.forEach((e,i)=>e.x.o=Q[Math.round(i/(n-1)*(Q.length-1))])}
   S.retd=gone;
 }
 /* ---------- player stat lines: last season's real numbers set each player's style; minutes come from the depth chart ---------- */
 const STY={"nba":{"Devin Carter":[1.23,1.59,1.05],"Ron Harper Jr.":[1.05,1.6,1.02],"Mitchell Robinson":[0.73,1.64,0.64],"Mike Conley":[0.68,1.02,1.41],"Jordan Walsh":[0.81,1.9,0.56],"Luka Garza":[1.33,1.32,1.06],"Hugo González":[0.72,1.9,0.44],"Sam Hauser":[0.95,0.98,0.89],"Jayson Tatum":[0.97,1.21,1.48],"Baylor Scheierman":[0.8,1.82,1.05],"Derrick White":[0.79,0.73,1.21],"Neemias Queta":[0.87,1.01,0.79],"Paul George":[1.02,0.79,1.24],"Payton Pritchard":[0.91,0.74,0.8],"Moritz Wagner":[1.5,1.16,1.12],"Josh Minott":[1.16,1.33,0.88],"Day'Ron Sharpe":[1.11,1.21,1.6],"Keon Ellis":[0.88,0.88,0.62],"Michael Porter Jr.":[1.1,0.65,0.91],"Julius Randle":[1.0,0.63,1.55],"Drake Powell":[0.82,0.78,0.81],"Nolan Traoré":[0.95,0.65,1.11],"Egor Dëmin":[0.93,0.93,1.29],"Ben Saraf":[0.91,0.84,1.78],"Danny Wolf":[1.03,0.81,1.4],"Terance Mann":[0.76,1.14,1.44],"Noah Clowney":[0.98,0.6,0.77],"Landry Shamet":[1.07,0.71,0.74],"Tony Bradley":[1.01,1.5,0.91],"Bruce Brown":[0.83,1.36,0.99],"Ochai Agbaji":[0.89,1.48,0.66],"Drew Eubanks":[1.08,1.28,0.7],"Jordan Clarkson":[1.32,1.0,0.97],"Jose Alvarado":[0.97,1.15,1.27],"Karl-Anthony Towns":[1.04,0.94,0.91],"Andre Drummond":[0.85,1.64,0.97],"Mikal Bridges":[0.83,0.72,0.95],"Jalen Brunson":[1.05,0.51,0.85],"OG Anunoby":[0.88,0.7,0.68],"Tyler Kolek":[1.03,1.41,1.92],"Miles McBride":[1.07,0.72,0.63],"Josh Hart":[0.8,1.6,1.4],"Dean Wade":[0.69,0.96,1.13],"Kentavious Caldwell-Pope":[1.05,1.08,1.58],"LeBron James":[0.99,1.06,1.01],"Rayan Rupert":[0.84,1.67,0.8],"Caleb Love":[1.28,0.98,0.86],"Anfernee Simons":[1.3,0.75,0.61],"Jaylen Brown":[1.08,0.99,0.99],"Dominick Barlow":[0.8,0.93,0.77],"Jabari Walker":[0.99,1.4,0.77],"Justin Edwards":[1.05,0.93,1.08],"VJ Edgecombe":[0.7,0.87,0.88],"Joel Embiid":[1.26,0.57,1.1],"Adem Bona":[0.73,1.29,0.49],"Tyrese Maxey":[0.91,0.54,0.7],"Malachi Smith":[0.86,1.16,1.52],"Kyle Anderson":[0.83,1.23,2.4],"RJ Barrett":[1.09,1.02,0.85],"Collin Murray-Boyles":[0.91,1.31,1.14],"Scottie Barnes":[0.78,0.89,1.61],"Immanuel Quickley":[0.86,0.75,0.89],"Jamal Shead":[0.74,0.67,1.71],"Ja'Kobe Walter":[0.95,1.12,0.7],"Kawhi Leonard":[1.31,0.81,1.05],"Jakob Poeltl":[0.97,0.9,0.99],"Zach Collins":[1.33,1.43,1.26],"Jordan Hawkins":[1.02,1.24,0.78],"Brandon Boston Jr.":[1.08,1.05,0.97],"Norman Powell":[1.33,0.75,0.43],"Leonard Miller":[1.32,1.29,0.95],"Josh Giddey":[0.8,1.45,1.28],"Tre Jones":[1.05,0.78,1.1],"Isaac Okoro":[0.86,0.82,0.65],"Jalen Smith":[1.19,1.9,0.79],"Nic Claxton":[0.84,0.71,1.46],"Patrick Williams":[0.9,1.0,1.15],"Buddy Hield":[1.3,1.45,1.18],"Matas Buzelis":[0.99,0.9,0.75],"Thomas Bryant":[1.39,1.21,0.82],"James Harden":[1.0,0.76,1.02],"Peyton Watson":[0.97,0.8,0.79],"Craig Porter Jr.":[0.67,1.83,1.39],"Nae'Qwan Tomlin":[1.01,1.38,0.88],"Sam Merrill":[1.11,0.73,0.91],"Tyrese Proctor":[1.34,1.15,1.79],"Jarrett Allen":[1.07,1.1,0.77],"Evan Mobley":[0.88,0.67,1.04],"Donovan Mitchell":[1.15,0.72,0.73],"Jaylon Tyson":[1.04,1.3,0.75],"Jalen Duren":[1.11,0.91,0.67],"Elijah Harkless":[0.85,0.9,1.05],"Javonte Green":[1.07,1.19,0.68],"Kevin Huerter":[1.1,1.23,1.23],"John Collins":[1.08,0.77,0.48],"Ausar Thompson":[0.78,1.46,1.07],"Daniss Jenkins":[1.13,0.91,2.08],"Taurean Prince":[1.02,0.88,1.18],"Paul Reed":[1.46,1.62,1.42],"Duncan Robinson":[1.06,0.57,1.03],"Cade Cunningham":[0.88,0.82,1.19],"Ron Holland":[1.04,1.26,0.87],"Isaiah Joe":[1.34,1.0,0.7],"Jay Huff":[1.11,0.67,0.96],"Jalen Slawson":[0.75,1.11,1.63],"Kobe Brown":[1.0,1.45,1.45],"Larry Nance Jr.":[0.8,1.26,1.54],"Kelly Oubre Jr.":[0.91,0.79,0.59],"Quenton Jackson":[1.3,1.11,1.89],"Jarace Walker":[0.97,1.04,1.18],"Ivica Zubac":[0.87,0.95,0.74],"T.J. McConnell":[1.39,1.13,2.12],"Andrew Nembhard":[0.9,0.54,1.19],"Obi Toppin":[1.5,1.14,1.97],"Pascal Siakam":[1.09,0.6,1.14],"Johnny Furphy":[0.74,1.67,1.05],"Aaron Nesmith":[0.98,0.97,0.59],"Tyrese Haliburton":[0.83,0.58,1.24],"Ben Sheppard":[0.87,1.27,1.02],"A.J. Green":[0.88,0.74,0.71],"Gary Trent Jr.":[1.03,0.46,0.74],"Pete Nance":[0.94,0.96,1.17],"Ousmane Dieng":[1.01,0.81,1.98],"Kam Jones":[0.72,0.93,2.4],"Tyler Herro":[1.05,0.86,0.99],"Jericho Sims":[0.68,1.49,1.42],"Ryan Rollins":[0.86,0.84,0.82],"Caris LeVert":[1.03,0.73,2.26],"Myles Turner":[0.95,0.6,0.65],"Kevin Porter Jr.":[0.82,0.9,1.04],"Kasparas Jakučionis":[0.92,1.32,1.78],"Kel'el Ware":[1.08,1.24,0.37],"Kyle Kuzma":[1.11,0.93,1.29],"Jaime Jaquez Jr.":[1.05,1.12,1.42],"Dyson Daniels":[0.6,1.16,1.36],"Jalen Wilson":[1.1,0.98,0.97],"Jock Landale":[1.15,0.88,1.02],"CJ McCollum":[1.19,0.72,0.68],"Luguentz Dort":[0.79,1.14,0.51],"Dorian Finney-Smith":[0.6,1.19,1.1],"Nickeil Alexander-Walker":[0.98,0.56,0.82],"Asa Newell":[1.23,1.03,0.92],"Corey Kispert":[1.31,1.14,1.05],"Jalen Johnson":[0.78,1.46,0.9],"Aaron Wiggins":[1.1,1.21,0.89],"Onyeka Okongwu":[0.84,0.8,1.08],"Mouhamed Gueye":[0.78,1.28,1.06],"Dennis Schröder":[1.06,0.92,1.31],"Coby White":[1.42,0.91,1.43],"Naz Reid":[1.06,0.89,1.04],"Brandon Miller":[1.07,0.68,1.06],"Sion James":[0.64,1.44,1.11],"Kon Knueppel":[0.94,0.94,0.81],"Liam McNeeley":[0.97,1.44,1.1],"Ryan Kalkbrenner":[0.89,0.94,0.52],"Moussa Diabaté":[0.69,1.38,0.99],"Royce O'Neale":[0.81,0.97,1.25],"Tidjane Salaün":[1.03,1.34,0.78],"Grayson Allen":[1.13,0.7,0.72],"Grant Williams":[0.93,1.34,1.27],"Simone Fontecchio":[1.37,1.3,1.4],"Bez Mbeng":[0.6,0.78,1.14],"Nick Richards":[1.07,1.47,0.38],"Klay Thompson":[1.41,0.86,0.77],"Tim Hardaway Jr.":[1.23,0.77,0.56],"Andrew Wiggins":[1.0,1.02,0.77],"Nikola Jović":[1.1,1.25,1.93],"Dru Smith":[0.92,1.51,1.27],"Bobby Portis":[1.26,1.07,0.88],"Davion Mitchell":[0.71,0.7,1.35],"Pelle Larsson":[0.98,0.97,1.27],"Bam Adebayo":[0.95,0.95,1.0],"Giannis Antetokounmpo":[1.41,1.36,1.72],"Paolo Banchero":[0.9,0.7,1.44],"Jonathan Isaac":[0.72,1.46,0.77],"Jevon Carter":[1.07,1.05,0.84],"Nikola Vučević":[1.03,0.82,1.26],"Jamal Cain":[1.22,1.25,1.01],"Anthony Black":[0.93,0.79,1.03],"Noah Penda":[0.8,1.78,1.54],"Jase Richardson":[1.09,1.11,0.82],"Jalen Suggs":[0.93,0.87,1.65],"Wendell Carter Jr.":[0.84,0.75,0.78],"Tristan Da Silva":[0.97,0.89,0.89],"Franz Wagner":[1.12,0.74,1.08],"Goga Bitadze":[1.03,1.33,1.33],"Desmond Bane":[0.94,0.67,0.91],"Tristan Vukcevic":[1.5,0.83,1.17],"Anthony Gill":[0.92,1.28,1.32],"Khris Middleton":[1.14,1.02,1.81],"Trae Young":[1.27,0.49,1.6],"Jamir Watkins":[0.93,1.64,0.74],"Bilal Coulibaly":[0.93,0.83,1.16],"Tre Mann":[1.19,1.33,1.69],"Tre Johnson":[1.15,0.85,0.82],"Will Riley":[1.14,0.59,1.35],"Deandre Ayton":[0.96,0.87,0.35],"Justin Champagnie":[1.08,1.73,0.85],"Alex Sarr":[1.02,0.89,1.07],"Kyshawn George":[0.93,1.07,1.27],"Bub Carrington":[0.82,0.84,1.53],"Anthony Davis":[1.02,1.1,0.92],"Marvin Bagley III":[1.26,1.35,1.04],"Ryan Nembhard":[0.86,1.0,1.94],"Cam Whitmore":[1.4,1.08,0.62],"Lonnie Walker IV":[1.22,1.02,1.07],"DeMar DeRozan":[1.09,0.57,1.09],"Spencer Jones":[0.66,1.04,0.58],"Nikola Jokić":[0.97,0.77,2.4],"Tyus Jones":[0.6,0.82,1.38],"Christian Braun":[0.78,1.02,0.77],"Aaron Gordon":[1.16,1.03,1.1],"Jamal Murray":[0.99,0.66,0.86],"Zeke Nnaji":[0.84,1.21,0.92],"Cameron Johnson":[0.88,0.67,0.97],"Julian Strawther":[1.29,0.96,1.22],"Jonathan Kuminga":[1.18,1.33,1.26],"Ayo Dosunmu":[1.11,0.83,1.17],"Jaylen Clark":[0.84,1.39,0.62],"LaMelo Ball":[1.13,0.99,1.18],"Bones Hyland":[1.36,1.04,1.22],"Rudy Gobert":[0.68,1.04,0.59],"Terrence Shannon Jr.":[1.23,0.89,0.98],"Cody Williams":[0.9,0.76,1.17],"Jaden McDaniels":[0.9,0.47,1.0],"Anthony Edwards":[1.09,0.71,0.71],"Donte DiVincenzo":[0.82,0.9,1.12],"Kenrich Williams":[1.16,1.61,1.57],"Isaiah Hartenstein":[0.81,1.17,1.67],"Shai Gilgeous-Alexander":[1.22,0.67,0.83],"Jalen Williams":[1.05,0.96,1.54],"Chet Holmgren":[0.99,0.77,0.57],"Ajay Mitchell":[1.1,0.86,1.27],"Jaylin Williams":[0.94,1.34,1.93],"Alex Caruso":[0.91,1.45,1.4],"Nikola Topić":[0.86,1.07,2.4],"Jared McCain":[1.26,1.11,0.59],"Cason Wallace":[0.75,0.91,0.61],"Ja Morant":[1.12,0.68,1.36],"Scoot Henderson":[1.19,0.76,0.84],"Deni Avdija":[0.99,1.09,0.86],"Jrue Holiday":[1.05,0.98,1.75],"Donovan Clingan":[0.79,1.12,0.78],"Vít Krejčí":[1.04,0.96,0.89],"Damian Lillard":[1.02,0.72,0.88],"Shaedon Sharpe":[1.18,0.84,0.68],"Toumani Camara":[0.79,0.74,0.84],"Sidy Cissoko":[0.72,1.09,1.0],"Robert Williams":[1.0,1.9,0.92],"Branden Carlson":[1.36,1.12,1.0],"Micah Potter":[1.28,0.96,1.11],"Jeremy Sochan":[0.93,1.69,1.49],"Jaxson Hayes":[1.09,1.17,0.84],"Josh Okogie":[0.71,1.48,0.69],"Jusuf Nurkić":[0.81,1.11,1.97],"Keyonte George":[1.03,0.59,1.3],"Jaren Jackson Jr.":[1.07,0.61,0.69],"Ace Bailey":[1.0,0.75,0.74],"Kyle Filipowski":[1.03,0.92,1.28],"Svi Mykhailiuk":[1.06,0.72,1.27],"Lauri Markkanen":[1.12,0.46,0.54],"Isaiah Collier":[0.91,0.66,1.54],"Josh Green":[0.75,1.16,0.69],"Brice Sensabaugh":[1.37,0.69,0.98],"Charles Bassey":[1.35,1.61,0.76],"Dalen Terry":[0.87,1.56,1.61],"Georges Niang":[1.21,1.08,1.02],"Brandon Williams":[1.44,1.09,1.19],"Gary Payton II":[1.3,1.9,0.89],"De'Anthony Melton":[1.19,1.05,0.69],"Draymond Green":[0.7,1.12,2.4],"Brandin Podziemski":[0.93,1.14,1.11],"Al Horford":[0.98,1.09,1.91],"Kristaps Porziņģis":[1.41,0.63,1.17],"Gui Santos":[1.12,1.17,1.59],"Will Richard":[0.85,1.2,0.51],"Jimmy Butler":[1.1,1.05,1.24],"Moses Moody":[1.07,0.94,0.61],"Stephen Curry":[1.38,0.68,0.72],"Blake Wesley":[1.12,1.08,2.24],"Bradley Beal":[1.0,0.64,0.97],"Jalen Pickett":[0.88,1.47,1.19],"Yuki Kawamura":[0.8,1.6,1.86],"Jordan Miller":[1.12,1.11,1.15],"Kobe Sanders":[0.98,1.07,1.0],"Rui Hachimura":[0.98,0.69,0.39],"Darius Garland":[1.05,0.47,1.08],"Isaiah Jackson":[1.06,1.6,0.92],"Yanic Konan Niederhäuser":[1.13,1.53,0.52],"Nicolas Batum":[0.63,1.14,0.95],"Brook Lopez":[1.03,0.65,0.91],"Brandon Ingram":[1.0,0.69,1.05],"Kris Dunn":[0.66,1.01,0.89],"Derrick Jones Jr.":[0.89,0.76,0.7],"Max Strus":[0.89,1.33,1.33],"Gradey Dick":[1.16,1.31,0.65],"Walker Kessler":[0.64,1.05,0.56],"Matisse Thybulle":[0.98,1.21,0.73],"Ziaire Williams":[1.09,0.47,0.72],"Kevon Looney":[0.6,1.9,2.0],"Collin Sexton":[1.38,0.69,0.79],"Austin Reaves":[1.0,0.72,1.14],"Sandro Mamukelashvili":[1.22,0.97,1.25],"Quentin Grimes":[0.95,0.83,1.02],"Jarred Vanderbilt":[0.68,1.88,1.25],"Nick Smith Jr.":[1.34,0.64,0.65],"Luka Dončić":[1.1,1.05,0.91],"Jake LaRavia":[0.79,0.95,0.98],"Jaden Hardy":[1.5,0.95,0.54],"Dalton Knecht":[1.13,1.39,0.53],"Kennedy Chandler":[0.83,0.66,1.05],"Luke Kennard":[1.01,0.97,1.23],"Mark Williams":[1.07,1.03,0.5],"Jordan Goodwin":[0.95,1.82,0.66],"Collin Gillespie":[0.91,1.0,0.9],"Devin Booker":[1.1,0.6,1.25],"Pat Spencer":[1.02,1.22,1.43],"Jamaree Bouyea":[1.11,1.33,1.07],"Rasheer Fleming":[0.95,1.03,0.44],"Jalen Green":[1.32,0.88,0.92],"Miles Bridges":[1.0,0.86,1.09],"Oso Ighodaro":[0.75,1.11,1.65],"Ryan Dunn":[0.78,1.45,1.19],"Dillon Brooks":[1.18,0.53,0.62],"Leaky Black":[0.61,1.07,0.74],"Precious Achiuwa":[0.98,1.58,0.76],"Zach LaVine":[1.16,0.56,0.62],"Daeqwon Plowden":[1.0,0.91,0.53],"Killian Hayes":[0.83,1.2,2.4],"Keegan Murray":[0.75,0.77,0.53],"Nique Clifford":[0.84,1.21,1.03],"Maxime Raynaud":[0.98,1.08,0.66],"Malik Monk":[1.35,0.7,0.89],"Domantas Sabonis":[0.87,1.23,1.45],"De'Andre Hunter":[1.15,0.83,0.95],"Santi Aldama":[0.99,0.68,1.13],"Dwight Powell":[0.64,1.76,1.56],"Jett Howard":[1.18,1.23,0.83],"Moussa Cisse":[0.87,1.7,0.35],"P.J. Washington":[0.88,1.08,0.64],"Marcus Sasser":[1.19,0.88,1.42],"Daniel Gafford":[1.04,1.38,0.73],"Kyrie Irving":[1.01,0.74,0.57],"Cooper Flagg":[0.89,0.78,1.21],"Zaccharie Risacher":[1.04,1.01,0.67],"Max Christie":[0.93,0.78,0.66],"Naji Marshall":[1.01,0.77,1.25],"Caleb Martin":[0.73,1.32,1.7],"Tari Eason":[0.91,1.33,0.73],"Oscar Tshiebwe":[1.23,1.9,1.11],"Marcus Smart":[0.78,0.79,0.68],"Bogdan Bogdanović":[1.02,1.3,1.49],"Amen Thompson":[0.71,0.83,1.29],"Kevin Durant":[1.05,0.61,1.22],"Fred VanVleet":[0.71,0.66,0.8],"Clint Capela":[0.85,1.66,0.97],"Jabari Smith Jr.":[0.77,0.5,0.53],"Steven Adams":[0.66,1.43,0.96],"Alperen Şengün":[0.85,0.6,1.6],"Reed Sheppard":[1.03,0.75,0.71],"Cedric Coward":[1.06,1.5,0.96],"Quinten Post":[1.17,1.18,1.36],"Olivier-Maxence Prosper":[1.37,1.21,0.79],"Ty Jerome":[1.5,0.76,2.09],"Cam Spencer":[1.06,0.8,1.45],"Micah Peavy":[0.78,1.25,0.89],"Kris Murray":[0.66,1.07,0.96],"Walter Clayton":[0.96,0.83,2.23],"Scotty Pippen Jr.":[1.09,1.23,1.32],"Zach Edey":[1.0,1.28,0.59],"Jaylen Wells":[1.08,0.67,0.77],"GG Jackson II":[1.33,0.83,0.95],"Isaiah Stewart":[1.05,0.96,0.7],"Jerami Grant":[1.21,0.56,0.78],"Taylor Hendricks":[1.02,0.99,0.8],"Jeremiah Fears":[1.09,0.96,0.71],"Julian Reese":[0.94,1.54,0.87],"Bennedict Mathurin":[1.09,1.12,0.66],"Trendon Watford":[1.07,1.44,2.4],"DeAndre Jordan":[0.73,1.72,0.95],"Bryce McGowens":[1.02,0.9,0.87],"Zion Williamson":[1.16,0.61,1.13],"Derik Queen":[0.92,1.03,1.77],"Trey Murphy III":[0.93,0.66,1.01],"Karlo Matković":[1.04,1.34,0.95],"Saddiq Bey":[1.03,0.82,0.85],"Yves Missi":[0.74,1.1,0.94],"Dejounte Murray":[0.83,1.13,1.04],"Herbert Jones":[0.73,0.69,1.3],"Jordan Poole":[1.29,0.62,1.3],"Taelon Peter":[0.95,1.28,0.71],"Harrison Barnes":[0.99,0.71,1.11],"Tobias Harris":[1.04,0.97,1.09],"Keldon Johnson":[1.29,1.7,0.59],"Julian Champagnie":[0.9,1.14,0.68],"De'Aaron Fox":[0.96,0.71,0.94],"Luke Kornet":[0.81,1.13,1.35],"Dylan Harper":[1.15,1.07,1.65],"Carter Bryant":[0.98,1.9,0.77],"Stephon Castle":[0.86,1.0,1.13],"Devin Vassell":[0.93,0.87,0.73],"Victor Wembanyama":[1.19,0.88,0.92]},"wnba":{"DeWanna Bonner":[0.96,1.21,0.89],"Isobel Borlase":[1.15,1.34,1.08],"Jordin Canada":[0.71,0.86,1.16],"Allisha Gray":[1.04,0.73,0.68],"Naz Hillmon":[0.79,0.69,0.74],"Rhyne Howard":[0.85,0.72,0.84],"Te-Hina PaoPao":[1.01,0.91,0.95],"Angel Reese":[0.83,1.23,0.88],"Rachel Banham":[1.16,1.08,1.41],"Kamilla Cardoso":[1.03,0.96,1.02],"DiJonai Carrington":[1.5,1.9,0.46],"Natasha Cloud":[0.9,1.05,0.96],"Aicha Coulibaly":[1.17,1.9,0.59],"Skylar Diggins":[1.05,0.92,0.9],"Gabriela Jaquez":[1.05,1.55,0.56],"Jacy Sheldon":[0.92,0.71,1.1],"Azura Stevens":[1.01,0.91,1.08],"Sydney Taylor":[1.5,0.78,0.59],"Courtney Vandersloot":[1.1,1.24,1.49],"Elizabeth Williams":[0.92,1.14,1.37],"Nell Angloma":[1.07,1.05,1.43],"Raegan Beers":[1.12,1.42,1.09],"Kennedy Burke":[0.97,0.76,0.96],"Aaliyah Edwards":[1.38,1.01,0.67],"Brittney Griner":[1.17,0.77,1.21],"Ashlon Jackson":[0.78,1.13,0.83],"Gianna Kneepkens":[1.08,1.63,0.84],"Leïla Lacan":[0.88,0.57,0.86],"Charlisse Leger-Walker":[0.81,0.97,1.72],"Diamond Miller":[1.13,0.67,1.0],"Olivia Nelson-Ododa":[1.2,1.03,1.02],"Saniya Rivers":[0.79,0.99,1.47],"Hailey Van Lith":[1.05,1.19,1.01],"Monique Billings":[1.0,1.27,0.83],"Aliyah Boston":[1.04,0.84,1.15],"Caitlin Clark":[1.03,0.84,1.12],"Sophie Cunningham":[1.04,1.06,0.67],"Tyasha Harris":[0.96,0.99,2.15],"Myisha Hines-Allen":[0.85,1.35,1.9],"Lexie Hull":[0.85,1.76,0.49],"Raven Johnson":[0.9,1.9,0.91],"Kelsey Mitchell":[1.27,0.45,0.39],"Makayla Timpson":[0.85,1.27,0.4],"Rebecca Allen":[0.98,1.0,0.67],"Pauline Astier":[1.04,1.05,1.54],"Marine Fauthoux":[1.12,1.9,1.27],"Leonie Fiebich":[0.77,0.46,0.99],"Rebekah Gardner":[1.07,1.9,1.18],"Sabrina Ionescu":[1.01,1.03,0.82],"Marine Johannes":[1.16,0.98,1.42],"Jonquel Jones":[1.0,0.99,1.02],"Satou Sabally":[1.5,0.79,1.66],"Breanna Stewart":[0.85,0.73,0.9],"Han Xu":[1.41,0.87,0.88],"Georgia Amoore":[0.85,0.64,1.0],"Shakira Austin":[0.99,0.91,0.91],"Lauren Betts":[0.99,1.05,1.0],"Sonia Citron":[0.85,0.75,1.05],"Alicia Flórez":[0.9,1.46,1.27],"Kiki Iriafen":[1.01,1.19,0.58],"Betnijah Laney-Hamilton":[0.87,1.36,1.63],"Cotie McMahon":[0.95,1.46,1.15],"Michaela Onyenwere":[0.98,0.61,1.16],"Julie Allemand":[0.6,1.03,1.15],"Ornella Bankole":[0.73,1.18,1.63],"María Conde":[0.84,0.77,1.32],"Temi Fagbenle":[1.01,0.91,0.97],"Isabelle Harrison":[1.26,1.19,0.8],"Laura Juškaitė":[1.06,0.69,0.91],"Teonni Key":[0.62,1.13,0.83],"Marina Mabrey":[1.2,0.74,1.0],"Aneesah Morrow":[1.09,1.83,0.95],"Kia Nurse":[1.21,1.0,1.0],"Kiki Rice":[1.05,1.04,1.18],"Nyara Sabally":[1.18,0.89,0.89],"Brittney Sykes":[1.18,0.83,0.97],"Paige Bueckers":[0.98,0.84,0.78],"Alysha Clark":[0.74,1.29,1.52],"Azzi Fudd":[0.87,0.45,0.52],"Aziaha James":[1.5,1.9,1.44],"Awak Kuier":[0.93,1.0,0.79],"Arike Ogunbowale":[1.08,0.82,0.58],"Jessica Shepard":[0.76,1.15,1.69],"Maddy Siegrist":[1.32,0.99,1.02],"Odyssey Sims":[1.03,0.85,1.22],"Alanna Smith":[0.98,1.12,0.89],"Li Yueru":[1.02,1.44,0.93],"Laeticia Amihere":[1.03,1.46,1.5],"Veronica Burton":[0.86,1.0,1.03],"Kaila Charles":[0.9,1.47,1.26],"Kaitlyn Chen":[1.41,0.83,0.93],"Tiffany Hayes":[1.5,1.19,1.78],"Janelle Salaün":[1.45,0.79,0.73],"Kiah Stokes":[0.6,1.14,0.92],"Kayla Thornton":[0.9,1.14,0.51],"Gabby Williams":[1.26,0.64,1.23],"Cecilia Zandalasini":[1.26,0.54,1.34],"Dana Evans":[0.75,1.21,1.17],"Chelsea Gray":[0.74,0.81,1.05],"Jewell Loyd":[0.88,0.88,0.64],"Cheyenne Parker-Tyus":[1.5,1.54,1.15],"NaLyssa Smith":[1.13,1.08,0.47],"Stephanie Talbot":[0.72,0.87,1.04],"Brianna Turner":[0.6,1.11,0.35],"A'ja Wilson":[1.13,0.74,0.91],"Mai Yamamoto":[1.05,0.92,0.75],"Jackie Young":[0.94,0.94,0.94],"Monique Akoa Makani":[0.98,0.84,1.18],"Ariel Atkins":[0.78,0.93,1.07],"Cameron Brink":[1.23,1.12,1.04],"Rae Burrell":[1.09,0.45,1.2],"Chance Gray":[0.86,1.26,0.74],"Dearica Hamby":[1.02,0.9,0.95],"Tonie Morgan":[1.0,0.86,1.16],"Erica Wheeler":[0.9,0.71,1.21],"Maya Caldwell":[0.9,1.9,1.08],"Nia Coffey":[0.76,1.12,1.39],"Napheesa Collier":[1.02,1.0,1.09],"Antonia Delaere":[0.83,0.9,1.48],"Natasha Howard":[1.01,0.96,1.29],"Dorka Juhász":[0.74,1.19,1.66],"Anastasiia Kosu":[1.09,1.4,1.41],"Kayla McBride":[1.07,0.67,0.59],"Olivia Miles":[0.96,1.01,0.83],"Courtney Williams":[0.94,1.28,0.74],"Valeriane Ayayi":[1.18,1.18,1.58],"Noémie Brochant":[0.77,0.9,0.97],"Kahleah Copper":[1.14,0.47,0.7],"Lexi Held":[1.09,0.83,1.31],"Kyara Linskens":[0.9,1.2,1.09],"Natasha Mack":[0.99,1.29,0.66],"Kelsey Plum":[1.2,0.49,0.81],"Alyssa Thomas":[0.69,0.75,2.4],"Maddy Westbeld":[0.69,0.91,0.99],"Sami Whitcomb":[0.95,1.14,1.69],"Zia Cooke":[1.5,1.31,0.55],"Stefanie Dolson":[0.71,0.87,1.58],"Awa Fam":[0.8,0.7,0.77],"Natisha Hiedeman":[1.01,0.67,0.87],"Mackenzie Holmes":[0.89,1.81,1.16],"Jordan Horston":[0.76,1.05,1.2],"Flau'jae Johnson":[0.99,1.18,0.86],"Ezi Magbegor":[0.92,0.92,1.27],"Dominique Malonga":[1.11,0.94,0.66],"Jade Melbourne":[0.94,0.75,1.58],"Katie Lou Samuelson":[0.91,1.63,0.75],"Sarah Ashlee Barker":[1.03,1.52,0.97],"Frieda Bühner":[1.22,0.72,0.75],"Bridget Carleton":[1.0,0.55,0.8],"Emily Engstler":[0.92,1.14,1.22],"Megan DiLeo":[1.29,0.63,0.48],"Jordan Harrison":[1.04,1.39,2.09],"Carla Leite":[1.2,0.66,1.21],"Teja Oblak":[1.29,1.47,1.9],"Nyadiew Puoch":[0.71,0.66,0.74],"Karlie Samuelson":[0.95,1.14,0.82],"Serah Williams":[1.02,1.17,0.67],"Holly Winterburn":[1.13,1.52,2.35]}};
 const hsh=t=>{let h=2166136261;for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619)}return ((h>>>0)%10000)/10000};
 const styOf=x=>(STY[S.lg]||{})[x.n]||[.85+hsh(x.n+'p')*.3,.8+hsh(x.n+'r')*.4,.75+hsh(x.n+'a')*.5];
-const PM={nba:[12.8,.0057],wnba:[11,.0052]}, RBP={nba:{PG:4.7,SG:4.9,SF:6.5,PF:8.7,C:11.2},wnba:{PG:3.7,SG:4,SF:6.4,PF:8,C:9.4}}, ASP={nba:{PG:6.4,SG:4,SF:3.1,PF:2.9,C:3.2},wnba:{PG:6.2,SG:3.6,SF:2.4,PF:2.8,C:2.8}};
+const PM={nba:[12.8,.0057],wnba:[10.1,.0048]}, RBP={nba:{PG:4.7,SG:4.9,SF:6.5,PF:8.7,C:11.2},wnba:{PG:3.7,SG:4,SF:6.4,PF:8,C:9.4}}, ASP={nba:{PG:6.4,SG:4,SF:3.1,PF:2.9,C:3.2},wnba:{PG:6.2,SG:3.6,SF:2.4,PF:2.8,C:2.8}};
 const DMIN={nba:[34,33,32,30,28,26,23,20,16,12,8,6,5,4,3,3,3,3],wnba:[33,32,31,29,27,24,20,15,10,6,4,3,3,3,3]};
 function pLine(x,rank){
   const lg=S.lg, st=styOf(x), o=x.o, m=(DMIN[lg][rank]??3), f=Math.max(.35,.85+(o-65)/120), nz=k=>.92+hsh(x.n+k+S.year)*.16;
@@ -1334,41 +1337,66 @@ const sellV=x=>tvBaseV(x.o)*youthF(x.a), PICKV=()=>tvBaseV(66)*1.4;
 function logMove(m){S.moves=S.moves||[];m.yr=S.year;if(m.a===S.team||m.b===S.team)m.my=1;S.moves.unshift(m);S.moves=S.moves.slice(0,800)}
 function moveP(x,from,to,w,k){S.ros[from]=S.ros[from].filter(y=>y!==x);S.ros[to].push(x);S.ros[to].sort((a,b)=>b.o-a.o);(x.mv=x.mv||[]).push([S.year,w||'su',from,to,k||'trade'])}
 /* one window of deals: at the deadline the standings decide buyers and sellers, in the summer last year's strength does */
+/* estimated salary in $M: rating sets the deal, young players on rookie-scale deals come cheap */
+function salOf(x){const nba=S.lg==='nba',base=nba?2+48*Math.pow(clamp((x.o-55)/38,0,1),1.8):.07+.18*Math.pow(clamp((x.o-55)/35,0,1),1.6);
+  return base*((x.e<=3&&x.a<=(nba?24:25))?.4:1)}
+const justMoved=(x,when)=>x.mv&&x.mv.length&&x.mv[x.mv.length-1][0]===S.year&&x.mv[x.mv.length-1][1]===when;
+/* how badly a team needs a player at this position: gap between him and their best there */
+const posNeed=(ab,x)=>{const b=rosOf(ab).filter(y=>y.p===x.p).reduce((m,y)=>Math.max(m,y.o),0);return x.o-b};
 function cpuTrades(when){
   if(!S.ros)return []; const lg=L(), s=S.season, nba=S.lg==='nba';
   const rank=lg.teams.map(t=>t[0]).sort((a,b)=>when==='dl'?pct(s.stand[b]||{w:0,l:0})-pct(s.stand[a]||{w:0,l:0}):tvBase(b)-tvBase(a));
-  const nT=rank.length, buyers=rank.slice(0,Math.round(nT*.3)), sellers=rank.slice(Math.round(nT*.6));
+  const nT=rank.length, buyers=rank.slice(0,Math.round(nT*.33)), sellers=rank.slice(Math.round(nT*.6));
   const want=nba?(when==='dl'?2+d(3):3+d(3)):(when==='dl'?d(2):1+d(2)), used=new Set(), out=[];
   S.owe=S.owe||[];
-  for(let k=0;k<want*6&&out.length<want;k++){
-    const se=pick(sellers.filter(t=>!used.has(t))), bu=pick(buyers.filter(t=>!used.has(t)&&t!==se)); if(!se||!bu)break;
-    const sr=rosOf(se), br=rosOf(bu); if(sr.length<8||br.length<8)continue;
-    const best=sr[0];
-    /* sellers move veterans, and keep a young franchise player */
-    const cand=sr.slice(0,6).filter(x=>(x.a-(nba?0:2))>=27&&x.o>=(nba?68:66)&&!(x===best&&x.a<=26));
-    if(!cand.length)continue;
-    const star=rnd()<.6?cand[0]:pick(cand), need=sellV(star)*.95;
-    if(star.o>=88&&rnd()<.8)continue; /* superstars are rarely on the market */
-    const keep2=br.slice(0,2), pool=br.filter(x=>!keep2.includes(x)&&x.o<star.o).sort((a,b)=>sellV(b)-sellV(a)).slice(0,8);
+  /* a deal for one player: the buyer sends up to three players and up to two picks, salaries must roughly match */
+  const deal=(se,bu,star,disc)=>{
+    const br=rosOf(bu), need=sellV(star)*disc, inS=salOf(star);
+    const keep2=br.slice(0,2), pool=br.filter(x=>!keep2.includes(x)&&x.o<star.o&&!justMoved(x,when)).sort((a,b)=>sellV(b)-sellV(a)).slice(0,9);
     const owedBy=S.owe.filter(o=>o.from===bu).length, picksOk=Math.max(0,2-owedBy);
     let bestPk=null;
     const tryC=(arr,pk)=>{const v=arr.reduce((a,x)=>a+sellV(x),0)+pk*PICKV();if(v<need)return;
+      const outS=arr.reduce((a,x)=>a+salOf(x),0), slack=nba?2:.03;
+      if(inS>outS*1.25+slack||outS>inS*1.25+slack)return;            /* salary matching */
       const gain=tvBaseV(star.o)-arr.reduce((a,x)=>a+tvBaseV(x.o),0); if(gain<=0)return;
       const sc=v-need+arr.length*15+pk*25; if(!bestPk||sc<bestPk.sc)bestPk={arr,pk,sc}};
     for(let pk=0;pk<=picksOk;pk++){
       for(let i=0;i<pool.length;i++){tryC([pool[i]],pk);
         for(let j=i+1;j<pool.length;j++){tryC([pool[i],pool[j]],pk);
           for(let m=j+1;m<pool.length;m++)tryC([pool[i],pool[j],pool[m]],pk)}}
+      if(bestPk)break;                                                  /* picks only when players alone won't do */
     }
-    if(!bestPk)continue;
-    /* sometimes the asking price is just too high */
-    if(rnd()<.25)continue;
-    moveP(star,se,bu,when); bestPk.arr.forEach(x=>moveP(x,bu,se,when));
+    return bestPk;
+  };
+  const exec=(se,bu,star,pk,req)=>{
+    moveP(star,se,bu,when); pk.arr.forEach(x=>moveP(x,bu,se,when));
     {const cap=(nba?17:14)+1;while(S.ros[se].length>cap)S.ros[se].pop()} /* the seller waives its last man */
-    for(let i=0;i<bestPk.pk;i++)S.owe.push({from:bu,to:se});
+    for(let i=0;i<pk.pk;i++)S.owe.push({from:bu,to:se});
     used.add(se);used.add(bu);
-    const m={t:'trade',w:when,a:se,b:bu,ga:[[star.n,star.o,star.id]],gb:bestPk.arr.map(x=>[x.n,x.o,x.id]),pk:bestPk.pk};
+    const m={t:'trade',w:when,a:se,b:bu,ga:[[star.n,star.o,star.id]],gb:pk.arr.map(x=>[x.n,x.o,x.id]),pk:pk.pk};if(req)m.req=1;
     logMove(m); out.push(m);
+  };
+  /* unhappy stars on losing teams ask out, and usually get their wish at a discount */
+  rank.slice(Math.round(nT*.5)).forEach(se=>{if(used.has(se))return;
+    const st=rosOf(se).find(x=>x.o>=(nba?84:82)&&x.a>=26&&x.a<=32&&!justMoved(x,when));if(!st||rnd()>(when==='dl'?.06:.1))return;
+    const bs=shuffle(rank.slice(0,Math.round(nT*.5)).filter(b=>!used.has(b)&&b!==se)).sort((a,b)=>posNeed(b,st)-posNeed(a,st));
+    for(const bu of bs.slice(0,4)){const pk=deal(se,bu,st,.8);if(pk){exec(se,bu,st,pk,1);break}}});
+  for(let k=0;k<want*8&&out.length<want;k++){
+    const se=pick(sellers.filter(t=>!used.has(t))); if(!se)break;
+    const sr=rosOf(se); if(sr.length<8)continue;
+    const best=sr[0];
+    /* sellers move veterans, and keep a young franchise player */
+    const cand=sr.slice(0,6).filter(x=>(x.a-(nba?0:2))>=27&&x.o>=(nba?68:66)&&!(x===best&&x.a<=26)&&!justMoved(x,when));
+    if(!cand.length)continue;
+    const star=rnd()<.6?cand[0]:pick(cand);
+    if(star.o>=88&&rnd()<.8)continue; /* superstars are rarely on the market */
+    /* the buyer is a contender that needs his position */
+    const bs=buyers.filter(t=>!used.has(t)&&t!==se&&rosOf(t).length>=8&&posNeed(t,star)>-3);
+    if(!bs.length)continue;
+    const bu=bs.sort((a,b)=>posNeed(b,star)-posNeed(a,star)+(rnd()-.5)*6)[0];
+    const pk=deal(se,bu,star,.95); if(!pk)continue;
+    if(rnd()<.25)continue; /* sometimes the asking price is just too high */
+    exec(se,bu,star,pk,0);
   }
   return out;
 }
@@ -1376,8 +1404,12 @@ function cpuTrades(when){
 function cpuFA(){
   if(!S.ros)return []; const lg=L(), size=S.lg==='nba'?17:14, out=[], ab0=lg.teams.map(t=>t[0]);
   Object.entries(S.ros).forEach(([ab,list])=>list.slice().forEach(x=>{
-    if((x.a-(S.lg==='wnba'?2:0))<26||x.o<60||rnd()>.11)return;
-    if(rnd()<.55)return; /* re-signs */
+    /* contracts: only expiring deals reach free agency */
+    if(x.ct==null)x.ct=x.e<=1?2+d(2):1+d(4);
+    x.ct--; if(x.ct>0)return;
+    const rfa=x.e<=4&&x.a<=25, good=tvBase(ab)>=3.5, stay=rfa?.85:x.o>=80?(good?.8:.45):x.o>=70?(good?.65:.5):.5;
+    x.ct=x.a>=33?1+d(2):x.o>=80?3+d(2):1+d(4);
+    if(x.o<55||rnd()<stay)return; /* re-signs */
     const dests=ab0.filter(t=>t!==ab&&rosOf(t).length<size+1);
     if(!dests.length)return;
     const w=dests.map(t=>x.o>=78?Math.pow(tvBase(t),3):x.o>=70?tvBase(t):1);
@@ -1395,7 +1427,7 @@ function moveTxt(m,short2){
   if(m.t==='you')return `You were traded to the ${short(m.b)} (from ${short(m.a)})`;
   if(m.t==='youfa')return `You signed with the ${short(m.b)} (from ${short(m.a)})`;
   const pk=m.pk?`${m.gb.length?' and ':''}${m.pk===1?'a first-round pick':m.pk+' first-round picks'}`:'';
-  return `${short(m.b)} get ${nm(m.ga)} from ${short(m.a)} for ${nm(m.gb)}${pk}`;
+  return `${short(m.b)} get ${nm(m.ga)} from ${short(m.a)} for ${nm(m.gb)}${pk}${m.req?' (he asked out)':''}`;
 }
 function movesHTML(list,cap){
   if(!list||!list.length)return '';
@@ -1555,9 +1587,11 @@ function poEdge(opp,home){const p=clamp(.5+(teamV(S.team)-teamV(opp))*.09+(home=
 function stageMods(st,g){
   const home=g?g.home:st.home, po=isPO(st), m=po?[['Matchup',poEdge((g&&g.opp)||st.opp,home)]]:[['You',youMod()],['Team',teamMod()]];
   /* Clutch counts in clutch moments: Play-In, cup knockouts and any series game that can end the series */
-  if(st.type==='series'){const n=Math.ceil(st.bo/2);if(st.my===n-1||st.op===n-1)m.push(['Clutch',clutchMod()])}
+  /* Clutch counts in a deciding game (Game 3, 5 or 7), and Finals pressure in a Finals game that can end it */
+  const dec=st.type==='series'&&st.my===Math.ceil(st.bo/2)-1&&st.op===Math.ceil(st.bo/2)-1, close=st.type==='series'&&(st.my===Math.ceil(st.bo/2)-1||st.op===Math.ceil(st.bo/2)-1);
+  if(dec)m.push(['Clutch',clutchMod()])
   else if(st.po||st.clutch)m.push(['Clutch',clutchMod()]);
-  if(st.type==='series'&&st.final)m.push(['Pressure',-1]);
+  if(st.type==='series'&&st.final&&close)m.push(['Pressure',-1]);
   if(st.type==='series'&&st.final&&!out()){const rg=(S.hist||[]).reduce((a,h)=>a+h.ring,0);if(rg)m.push(['Ring experience',1])}
   if((['pf','tw'].includes(S.style)||(S.trait==='lead'&&!po))&&S.role>=3&&!out())m.push(['Teammates',1]);
   if(st.type==='batch'&&!out())(S.season.fx||[]).forEach(f=>{if(f.mod&&(!f.riv||isRival(S.team,(g&&g.opp)||st.opp)))m.push([f.lbl,f.mod])});
@@ -1589,7 +1623,7 @@ function playGame(st,i,r){
 }
 function rollInjury(st,v){
   const s=S.season, g=st.games[st.shown]; g.inj=v; g.injPending=false; if(S.trait==='iron')v=Math.min(10,v+2);
-  const n=v===1?18+d(6):v<=3?6+d(4):v<=6?1+d(3):0; g.injN=n; s.out=n;
+  const n0=v===1?18+d(6):v<=3?6+d(4):v<=6?1+d(3):0, n=S.lg==='wnba'&&n0?Math.max(1,Math.round(n0*44/82)):n0; g.injN=n; s.out=n;
   if(st.mi>=st.games.length)finishBatch(st);
 }
 function finishBatch(st){
@@ -1845,7 +1879,7 @@ function legendGo(){
 function newYear(){
   const H=S.hist[S.hist.length-1];
   Object.keys(S.fans||{}).forEach(k=>S.fans[k]*=.85);
-  rosYear(); S.sumMv=[...cpuFA(),...cpuTrades('su')].length; {const RT=rosTv();Object.keys(S.tv).forEach(k=>{const v=S.tv[k],dr=v+(3-v)*.25+(rnd()-.5)*1.2;S.tv[k]=clamp(RT[k]!=null?.5*dr+.5*RT[k]:dr,1,5.2)})}
+  rosYear(); S.sumMv=[...cpuFA(),...cpuTrades('su')].length; {const RT=rosTv();Object.keys(S.tv).forEach(k=>{const v=S.tv[k],dr=v+(3-v)*.25+(rnd()-.5)*1.2;S.tv[k]=clamp(RT[k]!=null?.35*dr+.65*RT[k]:dr,1,5.2)})}
   S.year++; S.role=roleAt(S.team,ovr(),tvBase(S.team)); if(S.year===S.rookieYear+1&&S.draft&&S.draft.role>S.role)S.role=Math.max(S.role,S.draft.role-1);
   S.phase='season'; S.off=null; newSeason();
   if(H&&H.ring)S.cer={yr:H.yr,team:H.team,moved:H.team!==S.team};
@@ -1919,7 +1953,7 @@ const advP=(p,adv)=>adv>0?1-(1-p)*(1-p):adv<0?p*p:p;
 function advOf(st,g){
   const why=[], s=S.season; if(!st||!s)return {n:0,why};
   const home=g?g.home:st.home, opp=(g&&g.opp)||st.opp;
-  if(st.type==='series'&&!out()){const n=Math.ceil(st.bo/2);if(st.my===n-1||st.op===n-1){const c=S.attrs.clu;if(home===true){const t=fanT(S.team);if(t===7)why.push(['Legend crowd',1]);if(t===0)why.push(['Hostile home crowd',-1])}if(c>=16)why.push(['Ice in the veins',1]);else if(c<=4)why.push(['Tight in the moment',-1])}}
+  if(st.type==='series'&&!out()){const n=Math.ceil(st.bo/2);if(st.my===n-1||st.op===n-1){const c=S.attrs.clu;if(home===true){const t=fanT(S.team);if(t===7)why.push(['Legend crowd',1]);if(t===0)why.push(['Hostile home crowd',-1])}if(st.my===n-1&&st.op===n-1){if(c>=15)why.push(['Ice in the veins',1]);else if(c<=3)why.push(['Tight in the moment',-1])}}}
   if(st.type==='batch')(s.fx||[]).forEach(f=>{if(f.adv&&(!f.riv||isRival(S.team,opp)))why.push([f.lbl,f.adv])});
   if(S.useInsp&&S.insp)why.push(['Inspiration',1]);
   const up=why.some(x=>x[1]>0), dn=why.some(x=>x[1]<0);
@@ -2384,7 +2418,7 @@ function tradesView(){
   const pl=l=>l.map(x=>`<span class="tp"${x[2]?` data-pl="${x[2]}"`:''}>${esc(x[0])} <i>${x[1]}</i></span>`).join('');
   const side=(ab,got,extra)=>`<div class="tside">${crest(ab,22)}<div><b data-team="${ab}">${esc(short(ab))}</b> <span class="muted">get</span><div class="tps">${got}${extra||''}${!got&&!extra?'<span class="tp muted">nothing</span>':''}</div></div></div>`;
   const card=m=>{
-    const you=m.t==='you'||m.t==='youfa', tag=m.t==='trade'?'Trade':m.t==='fa'?'Free agency':m.t==='you'?'Your trade':'Your signing';
+    const you=m.t==='you'||m.t==='youfa', tag=m.t==='trade'?(m.req?'Trade · requested':'Trade'):m.t==='fa'?'Free agency':m.t==='you'?'Your trade':'Your signing';
     const body=m.t==='trade'?side(m.b,pl(m.ga))+side(m.a,pl(m.gb),m.pk?`<span class="tp pk">${m.pk===1?'1st-round pick':m.pk+' 1st-round picks'}</span>`:'')
       :`<div class="tside">${crest(m.b,22)}<div><b data-team="${m.b}">${esc(short(m.b))}</b> <span class="muted">${m.t==='you'?'trade for':'sign'}</span><div class="tps">${pl(m.ga)}</div><span class="muted small">from the <b data-team="${m.a}">${esc(short(m.a))}</b></span></div></div>`;
     return `<div class="tcard${you?' you':m.my?' my':''}"><span class="ttag">${tag}</span>${body}</div>`;
@@ -2863,7 +2897,7 @@ function plHTML(id){
   const depth=!ret?teamLines(ab).findIndex(y=>y.id===x.id):-1;
   return `<div class="ovcard tmcard plcard">
     <div class="tm-head"><div class="plovr"><b>${x.o}</b><span>OVR</span></div><div style="min-width:0"><div class="ov-title">${esc(x.n)}</div>
-      <div class="tm-tags"><span>${x.p}</span><span>${ret?`Retired · ${x.a}`:`${x.a} yrs`}</span>${hIn?`<span>${fmtH(hIn)}</span>`:''}${x.r?'<span>Rookie</span>':''}</div></div></div>
+      <div class="tm-tags"><span>${x.p}</span><span>${ret?`Retired · ${x.a}`:`${x.a} yrs`}</span>${hIn?`<span>${fmtH(hIn)}</span>`:''}${x.r?'<span>Rookie</span>':''}${!ret&&x.ct!=null?`<span>${x.ct} yr${x.ct>1?'s':''} left</span>`:''}</div></div></div>
     <div class="pl-team">${ret?`Last team: ${tmLink(ab,tName(ab))}`:`${crest(ab,20)}${tmLink(ab,tName(ab))}${depth>=0?` <span class="muted">· ${ord(depth+1)} on the depth chart</span>`:''}`}</div>
     <div class="pl-draft">${draft}</div>
     <div class="tm-scroll">
