@@ -634,6 +634,9 @@ svg.die{aspect-ratio:1/1}
 /* rosters */
 .rost td:nth-child(3),.rost td:nth-child(4),.rost th:nth-child(3),.rost th:nth-child(4){text-align:center}
 .rk-r{font-style:normal;font-size:9.5px;font-weight:700;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:0 3px;vertical-align:1px}
+.dlnews{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--ink-2);margin-top:8px;text-align:center;max-width:360px}
+.dlnews .lbl{margin-bottom:2px} .dlnews .me{color:var(--ink);font-weight:600}
+.mvs .t2 span{white-space:normal;font-size:11.5px}
 .depthl{font-size:12.5px}
 /* RPG layer */
 .chip.adv{background:color-mix(in srgb,#2fb36b 16%,transparent);color:#2fb36b;border-color:color-mix(in srgb,#2fb36b 35%,transparent)}
@@ -1028,7 +1031,7 @@ const SFX={
 const sfx=(k,...a)=>{try{if(soundOn&&ac())SFX[k](...a)}catch(e){}};
 
 /* ================= state ================= */
-const APP_VER='0.23';
+const APP_VER='0.24';
 let setOpen=false, howOpen=false, quitArm=false;
 let diceFast=(()=>{try{return localStorage.getItem('rpglass-dice')==='fast'}catch(e){return false}})();
 let allSpd=(()=>{try{return localStorage.getItem('rpglass-allspd')||'f'}catch(e){return'f'}})();
@@ -1052,7 +1055,7 @@ function howHTML(){
    <p><b>Build your player.</b> Pick NBA or WNBA and a name, roll a d10 for height and a d10 for each of the eight attributes; your position is picked from them. Then choose a playstyle and a background, a trait that comes with a flaw.</p>
    <p><b>Draft night.</b> One d20, plus a bonus from your overall rating, decides where you're picked, or whether you go undrafted.</p>
    <p><b>Games.</b> Each game is a d20 plus your modifiers (you, your team, home or road, clutch in big games) against a target set by the opponent's strength. Meet it and you win. A natural 20 always wins; a natural 1 always loses and makes you roll the injury d10.</p>
-   <p><b>Real rosters.</b> Every team starts with its real players. They age, improve, retire and get replaced by draft classes as your career goes on; see them in Season → Roster.</p>   <p><b>Your role.</b> Your rating, your team and its depth chart decide your role, from deep bench to franchise player. Bigger roles mean more minutes, bigger stats and a bigger say in every roll.</p>
+   <p><b>Real rosters.</b> Every team starts with its real players. They age, improve, retire and get replaced by draft classes as your career goes on. CPU teams trade at the deadline and in the summer, contenders buying veterans and rebuilders collecting young players and picks, and free agents chase winners. See it all in Season → Roster.</p>   <p><b>Your role.</b> Your rating, your team and its depth chart decide your role, from deep bench to franchise player. Bigger roles mean more minutes, bigger stats and a bigger say in every roll.</p>
    <p><b>The season.</b> Play stretches of games one by one or roll them all, with the ${esc(lg.cupNm)} and All-Star voting along the way. Every other team plays its schedule too, so the standings are live.</p>
    <p><b>Playoffs.</b> ${S&&S.lg==='wnba'?'The top 8 make it.':'Seeds 1 to 6 go straight in; 7 to 10 fight it out in the Play-In.'} Each series shows one die per game: roll them one at a time or all at once.</p>
    <p><b>Offseasons.</b> Pick a training focus and roll for your summer. Young players grow fast; after 30 the clock wins. Sign contracts and decide when to retire.</p>
@@ -1249,11 +1252,85 @@ function rosYear(){
     S.ros[ab]=keep;
   });
   const order=lg.teams.map(t=>t[0]).sort((a,b)=>tvBase(a)-tvBase(b)); let n=0;
-  for(let rd=0;rd<2;rd++)order.forEach(ab=>{n++;S.ros[ab].push({n:randName(S.lg),p:pick(Object.keys(POS)),o:Math.round(clamp(69-n*(S.lg==='wnba'?.7:.35)+(rnd()-.5)*8,45,76)),a:S.lg==='wnba'?21+d(2):18+d(3),e:0,r:1,pk:n})});
+  for(let rd=0;rd<2;rd++)order.forEach(ab0=>{n++;let ab=ab0;if(rd===0&&S.owe){const oi=S.owe.findIndex(o=>o.from===ab0);if(oi>=0){ab=S.owe[oi].to;S.owe.splice(oi,1)}}S.ros[ab].push({n:randName(S.lg),p:pick(Object.keys(POS)),o:Math.round(clamp(69-n*(S.lg==='wnba'?.7:.35)+(rnd()-.5)*8,45,76)),a:S.lg==='wnba'?21+d(2):18+d(3),e:0,r:1,pk:n})});
   Object.keys(S.ros).forEach(ab=>{S.ros[ab].sort((a,b)=>b.o-a.o);S.ros[ab]=S.ros[ab].slice(0,size)});
   if(S.rosN){const N=rosNorm();Object.values(S.ros).forEach(l=>l.forEach(x=>x.o=Math.round(clamp(S.rosN.m+(x.o-N.m)*S.rosN.sd/N.sd,40,98))))}
   S.retd=gone;
 }
+/* ================= CPU trades and free agency ================= */
+/* rebuilding teams value youth, contenders value what helps now */
+const tvBaseV=o=>Math.pow(Math.max(0,o-48),2.4);
+const youthF=a=>{a-=S.lg==='wnba'?2:0;return a<=22?1.4:a<=25?1.2:a<=28?1:a<=31?.8:a<=33?.6:.4};
+const sellV=x=>tvBaseV(x.o)*youthF(x.a), PICKV=()=>tvBaseV(66)*1.4;
+function logMove(m){S.moves=S.moves||[];m.yr=S.year;S.moves.unshift(m);S.moves=S.moves.slice(0,60)}
+function moveP(x,from,to){S.ros[from]=S.ros[from].filter(y=>y!==x);S.ros[to].push(x);S.ros[to].sort((a,b)=>b.o-a.o)}
+/* one window of deals: at the deadline the standings decide buyers and sellers, in the summer last year's strength does */
+function cpuTrades(when){
+  if(!S.ros)return []; const lg=L(), s=S.season, nba=S.lg==='nba';
+  const rank=lg.teams.map(t=>t[0]).sort((a,b)=>when==='dl'?pct(s.stand[b]||{w:0,l:0})-pct(s.stand[a]||{w:0,l:0}):tvBase(b)-tvBase(a));
+  const nT=rank.length, buyers=rank.slice(0,Math.round(nT*.3)), sellers=rank.slice(Math.round(nT*.6));
+  const want=nba?(when==='dl'?2+d(3):3+d(3)):(when==='dl'?d(2):1+d(2)), used=new Set(), out=[];
+  S.owe=S.owe||[];
+  for(let k=0;k<want*6&&out.length<want;k++){
+    const se=pick(sellers.filter(t=>!used.has(t))), bu=pick(buyers.filter(t=>!used.has(t)&&t!==se)); if(!se||!bu)break;
+    const sr=rosOf(se), br=rosOf(bu); if(sr.length<8||br.length<8)continue;
+    const best=sr[0];
+    /* sellers move veterans, and keep a young franchise player */
+    const cand=sr.slice(0,6).filter(x=>(x.a-(nba?0:2))>=27&&x.o>=(nba?68:66)&&!(x===best&&x.a<=26));
+    if(!cand.length)continue;
+    const star=rnd()<.6?cand[0]:pick(cand), need=sellV(star)*.95;
+    if(star.o>=88&&rnd()<.8)continue; /* superstars are rarely on the market */
+    const keep2=br.slice(0,2), pool=br.filter(x=>!keep2.includes(x)&&x.o<star.o).sort((a,b)=>sellV(b)-sellV(a)).slice(0,8);
+    const owedBy=S.owe.filter(o=>o.from===bu).length, picksOk=Math.max(0,2-owedBy);
+    let bestPk=null;
+    const tryC=(arr,pk)=>{const v=arr.reduce((a,x)=>a+sellV(x),0)+pk*PICKV();if(v<need)return;
+      const gain=tvBaseV(star.o)-arr.reduce((a,x)=>a+tvBaseV(x.o),0); if(gain<=0)return;
+      const sc=v-need+arr.length*15+pk*25; if(!bestPk||sc<bestPk.sc)bestPk={arr,pk,sc}};
+    for(let pk=0;pk<=picksOk;pk++){
+      for(let i=0;i<pool.length;i++){tryC([pool[i]],pk);
+        for(let j=i+1;j<pool.length;j++){tryC([pool[i],pool[j]],pk);
+          for(let m=j+1;m<pool.length;m++)tryC([pool[i],pool[j],pool[m]],pk)}}
+    }
+    if(!bestPk)continue;
+    /* sometimes the asking price is just too high */
+    if(rnd()<.25)continue;
+    moveP(star,se,bu); bestPk.arr.forEach(x=>moveP(x,bu,se));
+    {const cap=(nba?17:14)+1;while(S.ros[se].length>cap)S.ros[se].pop()} /* the seller waives its last man */
+    for(let i=0;i<bestPk.pk;i++)S.owe.push({from:bu,to:se});
+    used.add(se);used.add(bu);
+    const m={t:'trade',w:when,a:se,b:bu,ga:[[star.n,star.o]],gb:bestPk.arr.map(x=>[x.n,x.o]),pk:bestPk.pk};
+    logMove(m); out.push(m);
+  }
+  return out;
+}
+/* summer free agency: some veterans hit the market, stars chase contenders */
+function cpuFA(){
+  if(!S.ros)return []; const lg=L(), size=S.lg==='nba'?17:14, out=[], ab0=lg.teams.map(t=>t[0]);
+  Object.entries(S.ros).forEach(([ab,list])=>list.slice().forEach(x=>{
+    if((x.a-(S.lg==='wnba'?2:0))<26||x.o<60||rnd()>.11)return;
+    if(rnd()<.55)return; /* re-signs */
+    const dests=ab0.filter(t=>t!==ab&&rosOf(t).length<size+1);
+    if(!dests.length)return;
+    const w=dests.map(t=>x.o>=78?Math.pow(tvBase(t),3):x.o>=70?tvBase(t):1);
+    let r=rnd()*w.reduce((a,b)=>a+b,0),to=dests[0];for(let i=0;i<dests.length;i++){r-=w[i];if(r<=0){to=dests[i];break}}
+    moveP(x,ab,to); if(S.ros[to].length>size+1)S.ros[to].pop();
+    if(x.o>=70){const m={t:'fa',w:'su',a:ab,b:to,ga:[[x.n,x.o]]};logMove(m);out.push(m)}
+  }));
+  return out;
+}
+/* team strength follows the roster after deals */
+function tvRefresh(before){const RT=rosTv();Object.keys(before).forEach(k=>{if(RT[k]!=null&&S.tv[k]!=null)S.tv[k]=clamp(S.tv[k]+.5*(RT[k]-before[k]),1,5.2)})}
+function moveTxt(m,short2){
+  const nm=l=>l.map(x=>x[0]).join(' and ');
+  if(m.t==='fa')return `${nm(m.ga)} signs with the ${short(m.b)} (from ${short(m.a)})`;
+  const pk=m.pk?`${m.gb.length?' and ':''}${m.pk===1?'a first-round pick':m.pk+' first-round picks'}`:'';
+  return `${short(m.b)} get ${nm(m.ga)} from ${short(m.a)} for ${nm(m.gb)}${pk}`;
+}
+function movesHTML(list,cap){
+  if(!list||!list.length)return '';
+  return `<div class="track mvs">${list.slice(0,cap).map(m=>`<div class="trow"><span class="tag">${m.t==='fa'?'FA':'TR'}</span><div class="t2"><b>${esc(m.ga[0][0])}${m.t==='trade'?` → ${esc(short(m.b))}`:` → ${esc(short(m.b))}`}</b><span>${esc(moveTxt(m))}</span></div>${crest(m.b,20)}</div>`).join('')}</div>`;
+}
+
 /* the depth chart: teammates who are better than you limit your role; being the best player lifts it */
 function roleAt(ab,o,v){let r=roleFor(o,v);if(!rosOf(ab).length)return r;const ahead=rosOf(ab).filter(x=>x.o>o).length;
   if(ahead>=8)r=Math.min(r,1);else if(ahead>=5)r=Math.min(r,2);
@@ -1285,6 +1362,7 @@ function rosterView(){
     <table class="stand rost"><thead><tr><th></th><th>Player</th><th>Pos</th><th>Age</th><th>OVR</th></tr></thead><tbody>
     ${rows.map((x,i)=>`<tr class="${x.me?'me':''}"><td>${i+1}</td><td><span class="nm">${esc(x.n)}${x.r?' <i class="rk-r">R</i>':''}</span></td><td>${x.p}</td><td>${x.a}</td><td><b>${x.o}</b></td></tr>`).join('')}</tbody></table>
     <h4 class="sech" style="margin-top:14px">MVP race</h4><div class="track">${race.slice(0,5).map((x,i)=>`<div class="trow"><span class="tag">${i+1}</span><div class="t2"><b>${esc(x.n)}${x.me?' (you)':''}</b><span>${esc(tName(x.ab))}</span></div>${crest(x.ab,20)}</div>`).join('')}${mi>=5?`<div class="trow"><span class="tag">${mi+1}</span><div class="t2"><b>${esc(S.name)} (you)</b><span>${esc(tName(S.team))}</span></div>${crest(S.team,20)}</div>`:''}</div>
+    ${(S.moves||[]).length?`<h4 class="sech" style="margin-top:14px">Transactions</h4>${movesHTML(S.moves.filter(m=>m.yr>=S.year-1),10)}`:''}
     ${S.retd&&S.retd.length?`<div class="muted small" style="margin-top:10px">Retired last summer: ${S.retd.slice(0,6).map(esc).join(', ')}</div>`:''}
     <div class="muted small" style="margin-top:8px;font-size:11.5px">Opening-day rosters from Basketball-Reference (October 2026). Ratings are estimates from last season's production and minutes.</div>`;
 }
@@ -1698,7 +1776,7 @@ function legendGo(){
 function newYear(){
   const H=S.hist[S.hist.length-1];
   Object.keys(S.fans||{}).forEach(k=>S.fans[k]*=.85);
-  rosYear(); {const RT=rosTv();Object.keys(S.tv).forEach(k=>{const v=S.tv[k],dr=v+(3-v)*.25+(rnd()-.5)*1.2;S.tv[k]=clamp(RT[k]!=null?.5*dr+.5*RT[k]:dr,1,5.2)})}
+  rosYear(); S.sumMv=[...cpuFA(),...cpuTrades('su')].length; {const RT=rosTv();Object.keys(S.tv).forEach(k=>{const v=S.tv[k],dr=v+(3-v)*.25+(rnd()-.5)*1.2;S.tv[k]=clamp(RT[k]!=null?.5*dr+.5*RT[k]:dr,1,5.2)})}
   S.year++; S.role=roleAt(S.team,ovr(),tvBase(S.team)); if(S.year===S.rookieYear+1&&S.draft&&S.draft.role>S.role)S.role=Math.max(S.role,S.draft.role-1);
   S.phase='season'; S.off=null; newSeason();
   if(H&&H.ring)S.cer={yr:H.yr,team:H.team,moved:H.team!==S.team};
@@ -2093,6 +2171,7 @@ function finishDeadline(go){
   const st=S.season.cur; st.pending=false; st.done=true;
   if(go){st.from=moveTo(st.dest,true);st.res=`Traded to ${short(st.dest)}`;st.cls='m'}
   else{st.res=st.tr?'Blocked the trade':'Stayed';st.cls='p';st.blocked=st.tr}
+  {const b=rosTv();st.cpu=cpuTrades('dl');if(st.cpu.length)tvRefresh(b)}
 }
 function deadlineHero(st){
   const s=S.season, rolled=st.roll!=null;
@@ -2103,7 +2182,9 @@ function deadlineHero(st){
     btn=`<button class="btn" data-act="tacc">Accept the trade</button><button class="btn ghost" data-act="tblk">Block it</button>`}
   else if(st.from){vis=`<div class="trmove">${crest(st.from,44)}<span>→</span>${crest(S.team,44)}</div>`;
     tail=`<div class="sum num">d20 <b>${st.roll}</b> vs ${st.target}</div><div class="verdict v-mid result">Traded to the ${esc(tName(S.team))}</div><div class="muted small">New role: ${ROLES[S.role]}. ${esc(welcomeTxt(S.team,st.from))}</div>`;btn=`<button class="btn" data-act="next">Next</button>`}
-  else{tail=`<div class="sum num">d20 <b>${st.roll}</b> vs ${st.target}</div><div class="verdict v-${st.blocked?'mid':'good'} result">${st.blocked?'Trade blocked':`You stay with the ${esc(short(S.team))}`}</div><div class="muted small">${st.blocked?'You used your no-trade clause.':S.req?'No deal got done. Your request stands into the summer.':'The deadline passes quietly.'}</div>`;btn=`<button class="btn" data-act="next">Next</button>`}
+  else{tail=`<div class="sum num">d20 <b>${st.roll}</b> vs ${st.target}</div><div class="verdict v-${st.blocked?'mid':'good'} result">${st.blocked?'Trade blocked':`You stay with the ${esc(short(S.team))}`}</div><div class="muted small">${st.blocked?'You used your no-trade clause.':S.req?'No deal got done. Your request stands into the summer.':((st.cpu||[]).some(m=>m.a===S.team||m.b===S.team)?'You stay, but your front office made a deal.':'The deadline passes quietly.')}</div>`;btn=`<button class="btn" data-act="next">Next</button>`}
+  if(st.done&&st.cpu){const mine=st.cpu.filter(m=>m.a===S.team||m.b===S.team);
+    tail+=st.cpu.length?`<div class="dlnews"><span class="lbl">Around the league</span>${st.cpu.slice(0,3).map(m=>`<div class="${mine.includes(m)?'me':''}">${esc(moveTxt(m))}</div>`).join('')}${st.cpu.length>3?`<div class="muted">+${st.cpu.length-3} more in Season → Roster</div>`:''}</div>`:`<div class="dlnews muted">A quiet deadline around the league.</div>`}
   return `<div class="stage"><div class="st-head"><span class="rk">${L().yl(S.year)}</span><span class="lbl">${esc(st.kicker)}</span><h3>${esc(st.title)}</h3></div>
     <div class="dicecol" data-act="${rolled?'':'roll'}">${vis}</div><div class="st-tail">${tail}</div><div class="st-act">${btn}</div></div>`;
 }
@@ -2766,10 +2847,15 @@ function lbRoll(){
   rollDice([el],20,[r],v=>v===20?'crit':v===1?'fumble':E.ok?'win':'lose',()=>{
     lbRolling=false; lastPair=lp; playGame(st,i,r); save();
     const g=st.games[i];
-    if(g.injPending){lbAll=false;render();sfx('nat1');return}
+    if(g.injPending){render();sfx('nat1');if(lbAll)setTimeout(()=>{if(lbAll&&!busy)lbInj();else lbAll=false},allSpd==='s'?350:600);return}
     render(); sfx(st.done?'seasonEnd':r===20?'nat20':g.ok?'pass':'fail');
     if(lbAll&&!st.done)setTimeout(()=>{if(lbAll&&!busy)lbRoll()},allSpd==='s'?120:allSpd==='f'?260:380);else lbAll=false;
   },lbAll);
+}
+function lbInj(){
+  const st=S.season.cur,g=st&&st.games[st.shown];if(!g||!g.injPending||busy)return;const r=d(10);
+  rollDice([document.querySelector('[data-die="lbinj"]')],10,[r],()=>r===1?'fumble':'adie',()=>{rollInjury(st,r);save();render();sfx('injury');
+    if(lbAll&&!st.done)setTimeout(()=>{if(lbAll&&!busy)lbRoll()},allSpd==='s'?500:900);else lbAll=false},lbAll);
 }
 function onCreate(a,v){
   const cr=S.cr;
@@ -2798,7 +2884,7 @@ function onOv(k,v){
   if(busy)return; const O=S.off, s=S.season;
   if(k==='lbroll'){lbRoll();return}
   if(k==='lball'){lbAll=true;lbRoll();return}
-  if(k==='lbinj'){const st=s.cur,r=d(10);rollDice([document.querySelector('[data-die="lbinj"]')],10,[r],()=>r===1?'fumble':'adie',()=>{rollInjury(st,r);save();render();sfx('injury')});return}
+  if(k==='lbinj'){lbInj();return}
   if(k==='lbclose'){s.lbOpen=false;save();render();return}
   if(k==='lbdone'){s.lbOpen=false;sfx('click');advance();return}
   if(k==='eos'){offNext('eos')}
