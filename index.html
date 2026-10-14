@@ -335,7 +335,7 @@ input[type=text]{font:inherit;font-size:16px;background:var(--card);color:var(--
 .wd.cur{outline:2px solid #8193ff;outline-offset:1px}
 .lbdie{height:112px;display:flex;align-items:center;justify-content:center;width:100%;cursor:pointer}
 .lbdie .die{height:100%;width:auto;max-width:none}
-.lbinfo{height:124px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:100%}
+.lbinfo{height:140px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:100%}
 .lbinfo .sum{font-size:12.5px;color:var(--ov-ink-2)} .lbinfo .sum b{color:#9cb0ff}
 .lbinfo .verdict{font-size:20px}
 .lbinfo .v-good{color:#6ea8ff} .lbinfo .v-bad{color:#ff8a7e} .lbinfo .v-mid{color:#e3a14d}
@@ -629,6 +629,22 @@ svg.die{aspect-ratio:1/1}
 .cvtabs{flex-wrap:wrap}.cvtabs button{font-size:12.5px;padding:4px 10px}
 .cvc-v{font-size:20px;font-weight:600}
 .cvc-plot{min-height:0}
+
+/* RPG layer */
+.chip.adv{background:color-mix(in srgb,#2fb36b 16%,transparent);color:#2fb36b;border-color:color-mix(in srgb,#2fb36b 35%,transparent)}
+.chip.dis{background:color-mix(in srgb,#e2553f 14%,transparent);color:#e2553f;border-color:color-mix(in srgb,#e2553f 35%,transparent)}
+.chip.insp{background:color-mix(in srgb,#e2a93b 18%,transparent);color:#c98a12;border-color:color-mix(in srgb,#e2a93b 45%,transparent);font-weight:600}
+button.chip.insp{cursor:pointer;font:inherit;font-size:12px}button.chip.insp.on{background:#e2a93b;color:#1b1405}
+.chip.goal{border-style:dashed}
+.ovcard.story{max-width:460px;gap:10px;text-align:left;align-items:stretch}
+.ovcard.story .ov-kicker,.ovcard.story .ov-title{text-align:left}
+.sopts{display:flex;flex-direction:column;gap:8px}
+.sopt{display:flex;flex-direction:column;gap:2px;text-align:left;padding:10px 12px;border-radius:10px;border:1px solid var(--ov-line,#3a3e47);background:var(--ov-card,#1d2026);color:var(--ov-ink,#eceef2);font:inherit;cursor:pointer}
+.sopt:hover{border-color:#8193ff}.sopt b{font-size:15px}.sopt span{font-size:12.5px;color:var(--ov-ink-2,#b0b4be)}
+.sopt.ghost{background:transparent}
+.spicked{font-size:13px;font-weight:600;color:#9cb0ff}
+.schk{display:flex;align-items:center;gap:12px}.schk .die{width:64px;height:64px;max-width:none}
+.trs .stylebtn i{font-style:normal}
 /* scouting report */
 .scout{border:1px solid var(--rule);border-radius:12px;padding:12px 14px;gap:8px;background:color-mix(in srgb,var(--accent) 5%,transparent)}
 .sc-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
@@ -1007,7 +1023,7 @@ const SFX={
 const sfx=(k,...a)=>{try{if(soundOn&&ac())SFX[k](...a)}catch(e){}};
 
 /* ================= state ================= */
-const APP_VER='0.21';
+const APP_VER='0.22';
 let setOpen=false, howOpen=false, quitArm=false;
 let diceFast=(()=>{try{return localStorage.getItem('rpglass-dice')==='fast'}catch(e){return false}})();
 let allSpd=(()=>{try{return localStorage.getItem('rpglass-allspd')||'f'}catch(e){return'f'}})();
@@ -1028,7 +1044,7 @@ function howHTML(){
   const lg=S&&S.lg?L():LG.nba;
   return `<div class="ovcard how"><span class="ov-kicker">RPGlass</span><div class="ov-title" style="font-size:28px">How to play</div>
   <div class="howtx">
-   <p><b>Build your player.</b> Pick NBA or WNBA and a position, roll a d10 for height and a d10 for each of the eight attributes, then choose a playstyle. The attributes that matter most for your position are highlighted.</p>
+   <p><b>Build your player.</b> Pick NBA or WNBA and a name, roll a d10 for height and a d10 for each of the eight attributes; your position is picked from them. Then choose a playstyle and a background, a trait that comes with a flaw.</p>
    <p><b>Draft night.</b> One d20, plus a bonus from your overall rating, decides where you're picked, or whether you go undrafted.</p>
    <p><b>Games.</b> Each game is a d20 plus your modifiers (you, your team, home or road, clutch in big games) against a target set by the opponent's strength. Meet it and you win. A natural 20 always wins; a natural 1 always loses and makes you roll the injury d10.</p>
    <p><b>Your role.</b> Your rating and your team decide your role, from deep bench to franchise player. Bigger roles mean more minutes, bigger stats and a bigger say in every roll.</p>
@@ -1037,7 +1053,7 @@ function howHTML(){
    <p><b>Offseasons.</b> Pick a training focus and roll for your summer. Young players grow fast; after 30 the clock wins. Sign contracts and decide when to retire.</p>
    <p><b>Trades.</b> Deadline day brings a d20 roll: losing teams and small roles get moved more often. Stars and franchise players can block a deal. Unhappy? Tap Request a trade on your card; it's usually granted at the deadline or in the summer.</p>
    <p><b>Fans.</b> Every team's fans have an opinion of you. Winning, titles, awards and staying loyal win them over; asking out or leaving in free agency hurts, and joining a rival makes your old fans hate you. Rival fans dislike you more the more you win. Love from your home crowd is worth +1 at home; a hostile crowd costs you.</p>
-   <p><b>Legacy.</b> Titles, awards and stats build your legacy score for the Hall of Fame. Unlock achievements and chase the real all-time records.</p>
+   <p><b>Choices and story.</b> Each preseason you can set a goal. Between stretches, story events ask you to choose, sometimes with an ability check: a d20 plus your attribute. Some rolls come with advantage (roll two d20s, keep the higher) or disadvantage (keep the lower). Big moments earn Inspiration: tap ★ before a roll to spend it for advantage.</p><p><b>Legacy.</b> Titles, awards and stats build your legacy score for the Hall of Fame. Unlock achievements and chase the real all-time records.</p>
   </div><button class="btn" data-ov="howclose">Got it</button></div>`;
 }
 const SAVE='rpglass-save2', HOFKEY='rpglass-hof';
@@ -1063,15 +1079,15 @@ const tierOf=v=>clamp(Math.round(v),1,5);
 function basePM(){const pm=clamp(Math.floor((ovr()-66)/5),-3,6);return pm*[.3,.55,.75,.9,1,1.1][S.role]}
 const youMod=()=>out()?0:clamp(Math.round(basePM()*.6),-3,4);
 const teamMod=()=>Math.round((effV()-3)*1.5);
-const clutchMod=()=>out()?0:clamp(Math.floor((S.attrs.clu-9)/3),-1,2);
+const clutchMod=()=>out()?0:clamp(Math.floor((S.attrs.clu-9)/3),-1,2)-(S.trait==='gym'?1:0);
 const DC=ab=>11+Math.round((teamV(ab)-3)*1.5);
 function roleFor(o,v){let r=0;ROLE_TH.forEach((t,i)=>{if(o>=t)r=i});if(v>=4.2&&r>0&&o<ROLE_TH[r]+3)r--;return r}
 const odds=(mod,target)=>Math.round(clamp((21-(target-mod))/20,.05,.95)*100);
 const pv=v=>clamp(.5+(v-3)*.11,.15,.85);
 const pGame=(a,b,home)=>clamp(.5+(teamV(a)-teamV(b))*.09+(home?.04:-.04),.08,.92);
 function gameLine(m){
-  const A=S.attrs,P=POS[S.pos],tl=styleOf()[3]||{},f=MINS[S.role]/36*(1+m*.015),j=()=>.6+rnd()*.8,lg=L();
-  return {pts:Math.max(0,Math.round((Math.max(A.sho,A.fin)*1.2+Math.min(A.sho,A.fin)*.6+A.ath*.3+A.clu*.2)*.8*f*(tl.pts||1)*lg.sc*j())),
+  const A=S.attrs,P=POS[S.pos],tl=styleOf()[3]||{},f=MINS[S.role]/36*(1+m*.015),j=()=>.6+rnd()*.8,lg=L(),xp=fxPts()*(S.trait==='lead'?.92:S.trait==='iron'?.92:1);
+  return {pts:Math.max(0,Math.round((Math.max(A.sho,A.fin)*1.2+Math.min(A.sho,A.fin)*.6+A.ath*.3+A.clu*.2)*.8*f*(tl.pts||1)*xp*lg.sc*j())),
     reb:Math.max(0,Math.round((A.reb*.55+A.ath*.1+P.rb)*f*(tl.reb||1)*lg.sc2*j())),
     ast:Math.max(0,Math.round((A.ply*.5+A.iq*.15)*P.as*f*(tl.ast||1)*lg.sc2*j()))}
 }
@@ -1212,7 +1228,9 @@ function startCareer(){
     age:lg.age(),year:lg.start,team:null,role:0,contract:null,tv:{},hist:[],draft:null,season:null,off:null,ovr0:null,champs:[]};
   lg.teams.forEach(t=>S.tv[t[0]]=clamp(t[6]+(rnd()-.5)*(CHAMPS[cr.lg]===t[0]?.3:1.4),1,5.2));
   S.hd=cr.hd; S.tens=AK.filter(k=>cr.rolls[k]===10).length; S.recs={}; S.fans={}; S.fanLog=[]; S.stints=[];
-  S.ovr0=ovr(); S.proj=proj; S.at0={...S.attrs}; save();
+  S.ovr0=ovr(); S.proj=proj; S.at0={...S.attrs}; S.trait=cr.trait||'none'; S.insp=0;
+  if(S.trait==='home'){const ab=pick(lg.teams)[0];S.home=ab;S.fans[ab]=12;RIV[S.lg].filter(p=>p.includes(ab)).forEach(p=>p.forEach(x=>{if(x!==ab)S.fans[x]=-6}))}
+  save();
 }
 function draftMod(){return clamp(Math.round((ovr()-60)/2.5),-2,8)}
 function draftPick(score){const lg=L();return lg.rounds===2?clamp(Math.round(61-score*2.9),1,61):clamp(Math.round(46-score*2.1),1,46)}
@@ -1245,7 +1263,7 @@ function newSeason(){
   const lg=L(), me=team(S.team), stand={};
   lg.teams.forEach(t=>stand[t[0]]={w:0,l:0,cw:0,cl:0});
   const s={yr:S.year,stand,q:lg.queue.slice(),qi:0,w:0,l:0,gp:0,pts:0,reb:0,ast:0,log:[],seed:null,po:null,allStar:0,out:S.carryOut||0,
-    cup:{},pi:null,br:null,seeds:null,champ:null,pgp:0,ppts:0,preb:0,past:0,gn:0,lbOpen:false,hi:0,phi:0,td:0,strk:0,mstrk:0,n20:0,perfect:0,f:{}};
+    fx:[],cards:0,cardIds:[],goalOpts:null,goal:null,goalSet:0,rivW:0,rivL:0,cup:{},pi:null,br:null,seeds:null,champ:null,pgp:0,ppts:0,preb:0,past:0,gn:0,lbOpen:false,hi:0,phi:0,td:0,strk:0,mstrk:0,n20:0,perfect:0,f:{}};
   S.carryOut=0;
   let cupOpps;
   if(S.lg==='nba'){
@@ -1324,7 +1342,8 @@ function stageMods(st,g){
   else if(st.po||st.clutch)m.push(['Clutch',clutchMod()]);
   if(st.type==='series'&&st.final)m.push(['Pressure',-1]);
   if(st.type==='series'&&st.final&&!out()){const rg=(S.hist||[]).reduce((a,h)=>a+h.ring,0);if(rg)m.push(['Ring experience',1])}
-  if(['pf','tw'].includes(S.style)&&S.role>=3&&!out())m.push(['Teammates',1]);
+  if((['pf','tw'].includes(S.style)||(S.trait==='lead'&&!po))&&S.role>=3&&!out())m.push(['Teammates',1]);
+  if(st.type==='batch'&&!out())(S.season.fx||[]).forEach(f=>{if(f.mod&&(!f.riv||isRival(S.team,(g&&g.opp)||st.opp)))m.push([f.lbl,f.mod])});
   if(home!=null&&!po)m.push([home?'Home':'Road',home?1:-1]);
   const opp=(g&&g.opp)||st.opp;
   if(home===true){const c=crowdMod(S.team);if(c)m.push([c>0?'Crowd':'Home boos',c])}
@@ -1337,27 +1356,27 @@ const modSum=m=>m.reduce((a,x)=>a+x[1],0);
 function evalGame(st,i,r){const g=st.games[i],m=stageMods(st,g),tot=r+modSum(m),dc=DC(g.opp),ok=r===20||(r!==1&&tot>=dc);return{m,tot,dc,ok}}
 function playGame(st,i,r){
   const s=S.season, g=st.games[i], E=evalGame(st,i,r);
-  g.r=r; g.tot=E.tot; g.dc=E.dc; g.ok=E.ok; g.mods=E.m; g.sc=finalScore(E.ok,E.tot-E.dc);
-  g.out=s.out>0;
+  g.r=r; g.tot=E.tot; g.dc=E.dc; g.ok=E.ok; g.mods=E.m; g.sc=finalScore(E.ok,E.tot-E.dc); g.pair=lastPair; lastPair=null;
+  g.out=s.out>0; if(s.fx)s.fx=s.fx.filter(f=>!f.game);
   const me=s.stand[S.team], op=s.stand[g.opp];
   if(E.ok){me.w++;op.l++;s.w++;s.strk++;s.mstrk=Math.max(s.mstrk,s.strk)}else{me.l++;op.w++;s.l++;s.strk=0}
   if(r===20)s.n20=(s.n20||0)+1;
-  if(isRival(S.team,g.opp)){g.riv=1;fanAdd(S.team,E.ok?.25:-.2,E.ok?`Beat the rival ${short(g.opp)}`:null);fanAdd(g.opp,E.ok?-.5:.1)}
+  if(isRival(S.team,g.opp)){g.riv=1;if(E.ok){s.rivW=(s.rivW||0)+1}else s.rivL=(s.rivL||0)+1;fanAdd(S.team,E.ok?.25:-.2,E.ok?`Beat the rival ${short(g.opp)}`:null);fanAdd(g.opp,E.ok?-.5:.1)}
   else fanAdd(S.team,E.ok?.04:-.03);
   if(st.cup){g.ok?me.cw++:me.cl++}
   simRound([S.team,g.opp]);
   if(g.out){s.out--}
-  else{const ln=gameLine(E.tot-E.dc);g.line=ln;s.gp++;s.pts+=ln.pts;s.reb+=ln.reb;s.ast+=ln.ast;s.hi=Math.max(s.hi,ln.pts);{const tt=S.lg==='wnba'?7:10;if(ln.pts>=tt&&ln.reb>=tt&&ln.ast>=tt)s.td++}if(r===1)g.injPending=true}
+  else{const ln=gameLine(E.tot-E.dc);g.line=ln;s.gp++;s.pts+=ln.pts;s.reb+=ln.reb;s.ast+=ln.ast;s.hi=Math.max(s.hi,ln.pts);{const tt=S.lg==='wnba'?7:10;if(ln.pts>=tt&&ln.reb>=tt&&ln.ast>=tt)s.td++}if(r===1&&!(s.fx||[]).some(f=>f.noInj))g.injPending=true}
   st.mi=i+1; st.shown=i;
   if(st.mi>=st.games.length&&!g.injPending)finishBatch(st);
 }
 function rollInjury(st,v){
-  const s=S.season, g=st.games[st.shown]; g.inj=v; g.injPending=false;
+  const s=S.season, g=st.games[st.shown]; g.inj=v; g.injPending=false; if(S.trait==='iron')v=Math.min(10,v+2);
   const n=v===1?18+d(6):v<=3?6+d(4):v<=6?1+d(3):0; g.injN=n; s.out=n;
   if(st.mi>=st.games.length)finishBatch(st);
 }
 function finishBatch(st){
-  const s=S.season; st.done=true;
+  const s=S.season; st.done=true; if(s.fx)s.fx=s.fx.filter(f=>f.game);
   const w=st.games.filter(g=>g.ok).length, l=st.games.length-w, pl=st.games.filter(g=>g.line);
   if(l===0&&st.games.length>=4)s.perfect=1;
   st.w=w; st.l=l; st.res=`${w}–${l}`; st.cls=w>l?'w':w<l?'l':'m';
@@ -1481,6 +1500,7 @@ function completeBracket(){
 /* ---------- resolving single stages and series ---------- */
 function resolveSingle(r){
   const s=S.season, st=s.cur;
+  st.pair=lastPair; lastPair=null; if(st.type!=='vote'&&r===20&&(st.po||st.cup))inspire('A natural 20 when it mattered');
   if(st.type==='vote'){st.roll=r;st.total=r+modSum(st.mods);st.ok=r===20||(r!==1&&st.total>=st.target);st.start=st.ok&&st.total>=st.starter;s.allStar=st.ok?(st.start?2:1):0;st.res=st.ok?(st.start?'Starter':'Reserve'):'Snubbed';st.cls=st.ok?'w':'p';st.done=true;return}
   st.mods=stageMods(st); st.roll=r; st.total=r+modSum(st.mods); st.target=stDC(st); st.ok=r===20||(r!==1&&st.total>=st.target);
   st.sc=finalScore(st.ok,st.total-st.target); st.done=true; st.cls=st.ok?'w':'l';
@@ -1507,7 +1527,9 @@ function evalSeriesGame(st,i,r){const g=st.games[i],m=stageMods(st,g),tot=r+modS
 function playSeriesGame(st,i,r){
   const s=S.season, g=st.games[i], n=Math.ceil(st.bo/2);
   if(st.my>=n||st.op>=n){g.r=r;g.dropped=true;return}
-  const E=evalSeriesGame(st,i,r); Object.assign(g,{r,tot:E.tot,dc:E.dc,ok:E.ok,mods:E.m,sc:finalScore(E.ok,E.tot-E.dc),out:s.out>0});
+  const E=evalSeriesGame(st,i,r); Object.assign(g,{r,tot:E.tot,dc:E.dc,ok:E.ok,mods:E.m,sc:finalScore(E.ok,E.tot-E.dc),out:s.out>0,pair:lastPair}); lastPair=null;
+  if(r===20){inspire('A natural 20 in the playoffs');fanAdd(S.team,1,`The shot in Game ${i+1} vs ${short(st.opp)}`)}
+  if(r===1)fanAdd(S.team,-1,`A Game ${i+1} turnover the city won't forget`);
   if(E.ok)st.my++;else st.op++;
   if(s.out>0)s.out--;else{const ln=gameLine(E.tot-E.dc);g.line=ln;s.pgp++;s.ppts+=ln.pts;st.pts=(st.pts||0)+ln.pts;st.pg=(st.pg||0)+1;s.phi=Math.max(s.phi,ln.pts)}if(r===20){s.n20=(s.n20||0)+1;if(st.final)s.f.n20f=1}
   st.mi=i+1;
@@ -1527,7 +1549,7 @@ function finishMySeries(st){
 
 function advance(){
   const s=S.season; if(s.cur&&(s.cur.done||s.cur.type==='skip'))s.log.push(s.cur);
-  s.qi++; if(s.qi<s.q.length){s.cur=mkStage(s.q[s.qi]);save();render();return}
+  s.qi++; if(s.qi<s.q.length){s.cur=mkStage(s.q[s.qi]);maybeCard();save();render();return}
   s.cur=null; finishSeason();
 }
 
@@ -1559,16 +1581,17 @@ function awards(){
 function finishSeason(){
   const s=S.season, ln=seasonLine(s);
   completeBracket();
-  const aw=awards(), r=s.stand[S.team];
+  const aw=awards(), r=s.stand[S.team], gres=goalEval();
+  if(s.sneaker&&!s.allStar)fanAdd(S.team,-4,'The sneaker deal flopped without an All-Star nod');
   const h={at:{...S.attrs},yr:S.year,team:S.team,age:S.age,role:S.role,ovr:ovr(),gp:s.gp,ppg:ln.ppg,rpg:ln.rpg,apg:ln.apg,w:r.w,l:r.l,seed:s.seed,po:s.po||'Missed the playoffs',ring:s.ring||0,cup:s.cup.res==='won',aw,champ:s.champ,cupW:s.cup.winner,from:s.from||null,pts:s.pts,reb:s.reb,ast:s.ast,hi:Math.max(s.hi,s.phi),rhi:s.hi,td:s.td,mstrk:s.mstrk,perfect:s.perfect,n20:s.n20,f:s.f,pos:myPos(),poGp:s.pgp,poPts:s.ppts};
-  h.fanB=s.fan0; fanSeasonEnd(h); h.fanA=fanV(S.team);
+  h.goal=gres; h.fanB=s.fan0; fanSeasonEnd(h); h.fanA=fanV(S.team);
   S.hist.push(h); S.carryOut=Math.max(0,s.out-10); S.phase='off'; S.off={step:'eos'}; save(); render();
   sfx(h.ring?'title':'seasonEnd');
 }
 /* legacy is judged by what each position does: rebounds and assists count with position weights,
    and each playstyle gets a factor (calibrated on 3,200 simulated careers) so every build has the same shot at the Hall of Fame */
 const LEGW={PG:[1.0,2.0],SG:[1.2,1.6],SF:[1.3,1.6],PF:[1.3,1.8],C:[1.2,2.0]};
-const LEGF={"nba":{"C:po":0.86,"C:rp":0.95,"C:sb":1.03,"PF:br":0.85,"PF:do":1.04,"PF:st":1.03,"PG:fg":0.69,"PG:sg":0.86,"PG:tw":1.0,"SF:lw":0.92,"SF:pf":1.11,"SF:sc":0.87,"SG:3d":1.1,"SG:sl":0.99,"SG:ss":0.74},"wnba":{"C:po":0.85,"C:rp":0.93,"C:sb":1.03,"PF:br":0.82,"PF:do":1.02,"PF:st":1.08,"PG:fg":0.66,"PG:sg":0.89,"PG:tw":1.16,"SF:lw":0.9,"SF:pf":1.05,"SF:sc":0.83,"SG:3d":1.11,"SG:sl":0.95,"SG:ss":0.74}};
+const LEGF={"nba":{"C:po":0.826,"C:rp":0.912,"C:sb":0.989,"PF:br":0.816,"PF:do":0.998,"PF:st":0.989,"PG:fg":0.662,"PG:sg":0.826,"PG:tw":0.96,"SF:lw":0.883,"SF:pf":1.066,"SF:sc":0.835,"SG:3d":1.056,"SG:sl":0.95,"SG:ss":0.71},"wnba":{"C:po":0.816,"C:rp":0.893,"C:sb":0.989,"PF:br":0.787,"PF:do":0.979,"PF:st":1.037,"PG:fg":0.634,"PG:sg":0.854,"PG:tw":1.114,"SF:lw":0.864,"SF:pf":1.008,"SF:sc":0.797,"SG:3d":1.066,"SG:sl":0.912,"SG:ss":0.71}};
 const awLeg=x=>/^MVP$/.test(x)?16:/Finals MVP/.test(x)?8:/Defensive Player/.test(x)?8:/1st Team/.test(x)?5:/2nd Team|3rd Team/.test(x)?3:/Assists leader/.test(x)?3:/Rookie of/.test(x)?3:/^All-Star/.test(x)?2:/All-Defensive/.test(x)?2:1;
 function legacy(H,pos,style,lg){
   pos=pos||S.pos; style=style||S.style; lg=lg||S.lg; const [wr,wa]=LEGW[pos]||[1.2,1.6];
@@ -1631,6 +1654,7 @@ function summerRoll(r){
   if(age<=22)up=2+Math.floor(r/5);else if(age<=25)up=1+Math.floor(r/6);else if(age<=28)up=Math.floor(r/8);else if(age<=30)up=r>=16?1:0;
   else if(age<=32){up=r>=15?1:0;down=2+(r<8?1:0)}else if(age<=34){down=r>=15?4:6}else down=r>=15?7:9;
   if(r===20)up+=2; if(r===1)down+=1;
+  if(S.trait==='gym'&&age<=23)up+=1; if(S.trait==='bloom'){if(age<=23)up=Math.max(0,up-1);else if(age>=26&&age<=29)up+=1}
   if(S.lg==='wnba'&&S.hist.length<=2)up+=S.hist.length<=1?2:1;   /* WNBA players enter older: +2 growth in their first summer, +1 in their second */
   const w=weights(S.pos,S.style);
   if(age<=32&&S.attrs[focus]<20)S.attrs[focus]++;
@@ -1663,12 +1687,150 @@ const RIV={
 };
 const rivalsOf=ab=>RIV[S.lg].filter(p=>p.includes(ab)).map(p=>p[0]===ab?p[1]:p[0]);
 const isRival=(a,b)=>!!a&&!!b&&RIV[S.lg].some(p=>p.includes(a)&&p.includes(b));
+/* ================= RPG layer: advantage, inspiration, checks, story events, season goals, traits ================= */
+/* advantage: roll 2d20 and keep the higher; disadvantage keeps the lower; having both cancels out */
+let lastPair=null;
+function rollKeep(adv){const a=d(20);if(!adv){lastPair=null;return a}const b=d(20);lastPair=[a,b,adv];return adv>0?Math.max(a,b):Math.min(a,b)}
+const advP=(p,adv)=>adv>0?1-(1-p)*(1-p):adv<0?p*p:p;
+function advOf(st,g){
+  const why=[], s=S.season; if(!st||!s)return {n:0,why};
+  const home=g?g.home:st.home, opp=(g&&g.opp)||st.opp;
+  if(st.type==='series'&&!out()){const n=Math.ceil(st.bo/2);if(st.my===n-1||st.op===n-1){const c=S.attrs.clu;if(home===true){const t=fanT(S.team);if(t===7)why.push(['Legend crowd',1]);if(t===0)why.push(['Hostile home crowd',-1])}if(c>=16)why.push(['Ice in the veins',1]);else if(c<=4)why.push(['Tight in the moment',-1])}}
+  if(st.type==='batch')(s.fx||[]).forEach(f=>{if(f.adv&&(!f.riv||isRival(S.team,opp)))why.push([f.lbl,f.adv])});
+  if(S.useInsp&&S.insp)why.push(['Inspiration',1]);
+  const up=why.some(x=>x[1]>0), dn=why.some(x=>x[1]<0);
+  return {n:up&&dn?0:up?1:dn?-1:0,why};
+}
+/* roll for the player's own game, spending Inspiration if it was used */
+function rollFor(st,g){const A=advOf(st,g),r=rollKeep(A.n);if(A.why.some(x=>x[0]==='Inspiration')){S.insp=0;S.useInsp=false}return r}
+const pairTxt=p=>p?`2d20 <b>${p[0]}</b>·<b>${p[1]}</b> ${p[2]>0?'keep high':'keep low'}`:'';
+/* Inspiration: one token at most, earned for big moments, spent for advantage on one roll */
+function inspire(why){if(S.insp)return;S.insp=1;toastQ.push({n:'Inspiration',d:`${why}. Spend it for advantage on any roll.`,g:'games',lbl:'Inspired'})}
+function inspBtn(){return S&&S.phase==='season'&&S.insp?`<button class="chip insp${S.useInsp?' on':''}" data-ov="insp" aria-pressed="${!!S.useInsp}">★ ${S.useInsp?'Inspired · advantage':'Use Inspiration'}</button>`:''}
+
+/* ---------- traits and flaws (character background) ---------- */
+const TRAITS={
+  none:['No background','A clean slate.'],
+  gym:['Gym rat','+1 growth every summer up to 23 · Clutch −1'],
+  show:['Showman','Fans react 25% more, good and bad'],
+  iron:['Iron man','Injury d10 +2 · scoring −8%'],
+  home:['Hometown kid','One team adores you from day one · its rivals dislike you'],
+  bloom:['Late bloomer','−1 growth up to 23 · +1 growth from 26 to 29'],
+  lead:['Floor leader','Teammates +1 in the regular season as a Starter or better · scoring −8%']
+};
+const trName=()=>S.trait&&S.trait!=='none'?TRAITS[S.trait][0]:'';
+
+/* ---------- temporary effects from story events ---------- */
+/* stretch effects last the next regular-season stretch; game effects the next regular-season game */
+function fx(o){const s=S.season;s.fx=s.fx||[];s.fx.push(o)}
+const fxActive=()=>{const s=S.season;return s&&s.cur&&s.cur.type==='batch'?(s.fx||[]):[]};
+const fxPts=()=>fxActive().reduce((a,f)=>a*(f.pts||1),1);
+
+/* ---------- ability checks ---------- */
+const chkMod=a=>Math.floor((S.attrs[a]-10)/2);
+
+/* ---------- story events ---------- */
+const CARDS=[
+ {id:'mentor',t:'A teammate is struggling',d:'Your backup is in a slump and the locker room has noticed. He asks if you can help.',o:[
+   {l:'Take him under your wing',d:'Teammates +1 for the next stretch · your scoring −10%',go:()=>{fx({lbl:'Mentor',mod:1,pts:.9});return 'You put in the extra hours. The second unit looks like a team again.'}},
+   {l:'Keep getting your shots',d:'Scoring +10% for the next stretch · some teammates grumble',go:()=>{fx({lbl:'Hunting shots',pts:1.1});fanAdd(S.team,-1,'Teammates grumble about your shots');return 'You stay locked in on your own game. Not everyone in the room loves it.'}}]},
+ {id:'trash',t:'Trash talk',d:'A rival star calls you overrated on a podcast. Reporters want a reaction.',cond:()=>RIV[S.lg].some(p=>p.includes(S.team)),o:[
+   {l:'Fire back',d:'Clutch check 12+ · pass: advantage in rivalry games this stretch · fail: disadvantage',chk:{a:'clu',dc:12},
+     pass:()=>{fx({lbl:'Fired up',adv:1,riv:1});fanAdd(S.team,1,'Won the war of words with a rival');return 'Your answer goes viral. The rivalry just got personal, and you are ready.'},
+     fail:()=>{fx({lbl:'Rattled',adv:-1,riv:1});fanAdd(S.team,-1,'Lost the war of words with a rival');return 'The comeback lands flat and the rival fires again. It gets in your head.'}},
+   {l:'Let your game talk',d:'Nothing changes',go:()=>{return 'No comment. The fans like the calm.'}}]},
+ {id:'sneaker',t:'A sneaker deal',d:'A brand wants to build a signature shoe around you. The billboards go up next week.',cond:()=>S.role>=3&&!S.season.sneaker,o:[
+   {l:'Sign it',d:'Fans +2 now · if you miss the All-Star team this season, fans −4',go:()=>{S.season.sneaker=1;fanAdd(S.team,2,'Signed a sneaker deal');return 'Your face is on every bus stop in town. Now you have to live up to it.'}},
+   {l:'Not yet',d:'Nothing changes',go:()=>'You tell them to come back after a big season.'}]},
+ {id:'film',t:'Extra film sessions',d:'The video coordinator offers late-night sessions breaking down the next opponents.',o:[
+   {l:'Join them',d:'IQ check 13+ · pass: +1 for the next stretch · fail: −1 from overthinking',chk:{a:'iq',dc:13},
+     pass:()=>{fx({lbl:'Film study',mod:1});return 'You see every play a beat early.'},
+     fail:()=>{fx({lbl:'Overthinking',mod:-1});return 'Too much tape. You start second-guessing every read.'}},
+   {l:'Rest instead',d:'Nothing changes',go:()=>'You trust your instincts and get some sleep.'}]},
+ {id:'media',t:'Media day',d:'Cameras, microphones and one tricky question about your future.',o:[
+   {l:'Speak your mind',d:'Clutch check 11+ · pass: fans +2.5 · fail: fans −2.5',chk:{a:'clu',dc:11},
+     pass:()=>{fanAdd(S.team,2.5,'Won the press room');return 'You own the room. The clip is everywhere by night.'},
+     fail:()=>{fanAdd(S.team,-2.5,'A quote went viral for the wrong reasons');return 'One sentence comes out wrong. It is on every show the next morning.'}},
+   {l:'Keep it short',d:'Fans −0.5',go:()=>{fanAdd(S.team,-.5,'Gave the press nothing');return 'Clichés and a quick exit. The beat writers grumble.'}}]},
+ {id:'scuffle',t:'Practice scuffle',d:'A teammate goes after you in a scrimmage. Everyone stops to watch.',o:[
+   {l:'Stand your ground',d:'Athleticism check 12+ · pass: advantage next game · fail: disadvantage next game',chk:{a:'ath',dc:12},
+     pass:()=>{fx({lbl:'Earned respect',adv:1,game:1});return 'You win the scrimmage and the respect of the room.'},
+     fail:()=>{fx({lbl:'Sore and sloppy',adv:-1,game:1});return 'You lose the battle and wake up sore.'}},
+   {l:'Walk away',d:'Nothing changes',go:()=>'You let it go. Practice moves on.'}]},
+ {id:'charity',t:'Charity night',d:'The team foundation asks you to host a youth clinic on your night off.',o:[
+   {l:'Host the clinic',d:'Fans +1.5 · −1 for the next game',go:()=>{fanAdd(S.team,1.5,'Hosted a youth clinic');fx({lbl:'Tired legs',mod:-1,game:1});return 'Two hundred kids, one long night. The city notices.'}},
+   {l:'Send a signed jersey',d:'Nothing changes',go:()=>{return 'A nice gesture, quietly done.'}}]},
+ {id:'night',t:'A night out',d:'Teammates are heading out after a big win. They want you there.',o:[
+   {l:'Go out',d:'Athleticism check 11+ · pass: Teammates +1 next game · fail: disadvantage next game',chk:{a:'ath',dc:11},
+     pass:()=>{fx({lbl:'Team bonding',mod:1,game:1});return 'Good night, early ride home, fresh in the morning.'},
+     fail:()=>{fx({lbl:'Rough morning',adv:-1,game:1});return 'Great night. Terrible morning.'}},
+   {l:'Stay in',d:'Nothing changes',go:()=>'Ice bath, early night.'}]},
+ {id:'rumor',t:'Trade rumours',d:'Your name is all over the deadline chatter.',cond:()=>S.season.q.slice(S.season.qi).includes('tdl'),o:[
+   {l:'Address it',d:'IQ check 12+ · pass: fans +2 · fail: fans −2',chk:{a:'iq',dc:12},
+     pass:()=>{fanAdd(S.team,2,'Said the right things about the rumours');return '"I want to win here." Exactly what the city needed.'},
+     fail:()=>{fanAdd(S.team,-2,'Fanned the trade rumours');return 'Your answer sounds like a goodbye. The fans take it badly.'}},
+   {l:'Ignore it',d:'Fans −0.5',go:()=>{fanAdd(S.team,-.5,'Stayed silent on the rumours');return 'Silence. The speculation keeps going.'}}]},
+ {id:'rest',t:'Load management',d:'The medical staff wants to manage your minutes for a stretch.',o:[
+   {l:'Accept it',d:'No injuries next stretch · scoring −5%',go:()=>{fx({lbl:'Load management',pts:.95,noInj:1});return 'Fewer minutes, fresher legs.'}},
+   {l:'Play through',d:'Nothing changes',go:()=>'You want every minute.'}]}
+];
+const cardOf=C=>CARDS.find(c=>c.id===C.id);
+function maybeCard(){
+  const s=S.season; if(!s||!s.cur||s.cur.type!=='batch'||(s.cards||0)>=2||rnd()>=.3)return;
+  const seen=s.cardIds||[], pool=CARDS.filter(c=>!seen.includes(c.id)&&(!c.cond||c.cond()));
+  if(!pool.length)return; const c=pick(pool); s.cards=(s.cards||0)+1; s.cardIds=seen.concat(c.id); s.card={id:c.id};
+}
+function cardResolve(r){
+  const s=S.season, C=s.card, o=cardOf(C).o[C.pick];
+  if(o.chk){const md=chkMod(o.chk.a),tot=r+md,ok=r===20||(r!==1&&tot>=o.chk.dc);Object.assign(C,{r,md,tot,ok,dc:o.chk.dc,a:o.chk.a});C.txt=ok?o.pass():o.fail()}
+  else C.txt=o.go();
+  C.done=1;
+}
+function cardHTML(){
+  const s=S.season, C=s.card, c=cardOf(C);
+  const opts=C.pick==null?`<div class="sopts">${c.o.map((o,i)=>`<button class="sopt" data-ov="cpick" data-v="${i}"><b>${esc(o.l)}</b><span>${esc(o.d)}</span></button>`).join('')}</div>`:'';
+  const o=C.pick!=null?c.o[C.pick]:null;
+  const chk=o&&o.chk?`<div class="schk">${dieSVG(20,C.r??'?',C.r==null?'':C.r===20?'crit':C.r===1?'fumble':C.ok?'win':'lose','chk')}<div class="sum num">${C.r==null?`${AN[o.chk.a]} check · ${o.chk.dc}+`:`d20 <b>${C.r}</b> ${sg(C.md)} ${AN[C.a]} = <b>${C.tot}</b> vs ${C.dc}`}</div></div>`:'';
+  return `<div class="ovcard story"><span class="ov-kicker">${L().yl(S.year)} · Off the court</span><div class="ov-title" style="font-size:24px">${esc(c.t)}</div><div class="ov-sub2">${esc(c.d)}</div>
+    ${opts}${o?`<div class="spicked">${esc(o.l)}</div>`:''}${chk}${C.done?`<div class="verdict v-${o.chk?(C.ok?'good':'bad'):'mid'}">${esc(C.txt)}</div><button class="btn" data-ov="cdone">Back to the season</button>`:''}</div>`;
+}
+
+/* ---------- season goals (pick one each preseason) ---------- */
+function goalOpts(){
+  const s=S.season, lg=L(), tot=lg.blocks.reduce((a,b)=>a+b[2],0), tv=tierOf(tvBase(S.team)), last=S.hist[S.hist.length-1], out=[];
+  out.push({k:'po',t:'Make the playoffs',x:0,df:tv>=4?1:2});
+  out.push({k:'wins',t:`Win ${Math.round(tot*.6)} games`,x:Math.round(tot*.6),df:tv>=4?2:3});
+  const px=Math.max(6,Math.round((last?last.ppg:4+S.role*3)+2));out.push({k:'ppg',t:`Average ${px} points`,x:px,df:2});
+  if(S.role>=3&&!(last&&last.aw.some(a=>/All-Star/.test(a))))out.push({k:'as',t:'Make the All-Star team',x:0,df:3});
+  if(RIV[S.lg].some(p=>p.includes(S.team)))out.push({k:'riv',t:'Win more rivalry games than you lose',x:0,df:2});
+  out.push({k:'iron',t:`Play ${Math.round(tot*.9)} games`,x:Math.round(tot*.9),df:1});
+  return shuffle(out).slice(0,3);
+}
+const GOALR=[null,[2,-2,0],[3,-3,0],[4,-4,1]];   /* fans on success, fans on failure, Inspiration on success */
+function goalPick(i){const s=S.season;s.goal=i==null||i<0?null:s.goalOpts[i];s.goalSet=1}
+function goalEval(){
+  const s=S.season, G=s.goal; if(!G)return null;
+  const r=s.stand[S.team], ln=seasonLine(s);
+  const ok=G.k==='po'?!!s.seed&&!/Missed|Play-In/.test(s.po||'Missed'):G.k==='wins'?r.w>=G.x:G.k==='ppg'?ln.ppg>=G.x:G.k==='as'?!!s.allStar:G.k==='riv'?(s.rivW||0)>(s.rivL||0):s.gp>=G.x;
+  const [up,dn,ins]=GOALR[G.df];
+  fanAdd(S.team,ok?up:dn,ok?`Goal met: ${G.t}`:`Goal missed: ${G.t}`);
+  if(ok&&ins)inspire(`Goal met: ${G.t}`);
+  return {t:G.t,ok,df:G.df};
+}
+function goalHTML(){
+  const s=S.season, D=['','Steady','Ambitious','Bold'];
+  return `<div class="ovcard story"><span class="ov-kicker">${L().yl(S.year)} · Preseason</span><div class="ov-title" style="font-size:24px">Set a goal for the season</div><div class="ov-sub2">Hit it for fan support (and Inspiration on a Bold goal). Miss it and the fans remember just as much.</div>
+    <div class="sopts">${s.goalOpts.map((g,i)=>{const R=GOALR[g.df];return `<button class="sopt" data-ov="gpick" data-v="${i}"><b>${esc(g.t)}</b><span>${D[g.df]} · fans +${R[0]} if met, ${R[1]} if missed${R[2]?' · Inspiration if met':''}</span></button>`}).join('')}
+    <button class="sopt ghost" data-ov="gpick" data-v="-1"><b>No goal this season</b><span>Just play</span></button></div></div>`;
+}
+
 const FANT=['Hated','Disliked','Wary','Neutral','Liked','Loved','Adored','Legend'];
 const FANB=[-20,-8,0,8,18,30,45];
 const fanV=ab=>(S.fans&&S.fans[ab])||0;
 const fanT=ab=>{const v=fanV(ab);let i=0;FANB.forEach(b=>{if(v>=b)i++});return i};
 function fanAdd(ab,dv,why){
   if(!ab)return; S.fans=S.fans||{}; S.fanLog=S.fanLog||[];
+  if(S.trait==='show')dv*=1.25;
   const t0=fanT(ab); S.fans[ab]=clamp(fanV(ab)+dv,-40,60);
   if(why){S.fanLog.push({yr:S.year,ab,why,dv:Math.round(dv*10)/10});if(S.fanLog.length>40)S.fanLog.shift()}
   const t1=fanT(ab); if(why&&ab===S.team&&t1!==t0&&S.phase==='season')toastQ.push({fan:1,n:`${short(ab)} fans: ${FANT[t1]}`,d:why,bad:t1<t0});
@@ -1770,6 +1932,10 @@ function sheet(){
   if(S.contract&&S.phase==='season'){const left=S.contract.until-S.year;chips.push(left<=0?`<span class="chip gold">Contract year</span>`:`<span class="chip">${esc(S.contract.kind)} · ${left+1} yrs</span>`)}
   if(s&&s.out>0&&S.phase==='season')chips.push(`<span class="chip inj">Injured · ${s.out} game${s.out>1?'s':''}</span>`);
   const rings=S.hist.reduce((a,h)=>a+h.ring,0); if(rings)chips.push(`<span class="chip yel">${rings}× champion</span>`);
+  if(trName())chips.push(`<span class="chip" title="${esc(TRAITS[S.trait][1])}">${esc(trName())}${S.trait==='home'&&S.home?` · ${esc(short(S.home))}`:''}</span>`);
+  if(S.insp)chips.push(`<span class="chip insp">★ Inspiration</span>`);
+  if(s&&s.goal&&S.phase==='season')chips.push(`<span class="chip goal" title="Season goal">◎ ${esc(s.goal.t)}</span>`);
+  if(s&&S.phase==='season')fxActive().concat((s.fx||[]).filter(f=>s.cur&&s.cur.type!=='batch')).forEach(f=>chips.push(`<span class="chip ${f.adv>0||f.mod>0||f.pts>1?'adv':f.adv<0||f.mod<0||f.pts<1?'dis':''}">${esc(f.lbl)}</span>`));
   if(S.phase==='season')chips.push(`<button class="chip reqb${S.req?' on':''}" data-act="req" title="${S.req?'Tap to withdraw':'Ask to be traded at the deadline or in the summer'}">${S.req?'Trade requested ×':'Request a trade'}</button>`);
   const tv=effV(), tl=tierOf(tv), tw=clamp((tv-.6)/(5.6-.6)*100,4,100), rw=(S.role+1)/6*100;
   return `<section class="panel"><div class="who"><div class="stack">
@@ -1786,8 +1952,8 @@ function sheet(){
     <div class="fanbar rl r${S.role}"><div class="fb-head"><span class="lbl">Role</span><span class="fb-state">${ROLES[S.role]} · ${MINS[S.role]} min</span></div><div class="fb-track"><span class="fb-fill" style="width:${rw.toFixed(1)}%"></span>${[1,2,3,4,5].map(i=>`<span class="fb-tick" style="left:${(i/6*100).toFixed(1)}%"></span>`).join('')}</div></div>
   </div>`:''}</section>`;
 }
-const chipsFor=(m,dc)=>m.map(x=>`<span class="chip">${x[0]} ${sg(x[1])}</span>`).join('')+`<span class="chip yel">Target ${dc}+</span><span class="chip odds">${odds(modSum(m),dc)}%</span>`;
-const sumOf=(r,m,tot,dc)=>`<div class="sum num">d20 <b>${r}</b> ${m.filter(x=>x[1]).map(x=>sg(x[1])).join(' ')} = <b>${tot}</b> vs ${dc}</div>`;
+const chipsFor=(m,dc,A)=>m.map(x=>`<span class="chip">${x[0]} ${sg(x[1])}</span>`).join('')+(A&&A.why.length?A.why.map(x=>`<span class="chip ${x[1]>0?'adv':'dis'}">${x[1]>0?'▲ Advantage':'▼ Disadvantage'} · ${esc(x[0])}</span>`).join(''):'')+`<span class="chip yel">Target ${dc}+</span><span class="chip odds">${A&&A.n?Math.round(advP(odds(modSum(m),dc)/100,A.n)*100):odds(modSum(m),dc)}%</span>${inspBtn()}`;
+const sumOf=(r,m,tot,dc,p)=>`<div class="sum num">${p?pairTxt(p):`d20 <b>${r}</b>`} ${m.filter(x=>x[1]).map(x=>sg(x[1])).join(' ')} = <b>${tot}</b> vs ${dc}</div>`;
 const scoreTxt=(ok,sc)=>`${ok?'W':'L'} ${sc[0]}–${sc[1]}`;
 const vsLine=(opp,home,ov)=>`<div class="vsline${ov?' ov':''}">${crest(S.team,24)}<b>${esc(short(S.team))}</b><span>${home==null?'vs':home?'vs':'at'}</span>${crest(opp,24)}<b>${esc(short(opp))}</b>${rivTag(opp)}</div>${rivTag(opp)?'<div class="rivline">Rivalry game · counts double with the fans</div>':''}`;
 const recLine=()=>{const s=S.season,r=s.stand[S.team];return `<div class="recline"><span>Record</span><b>${r.w}–${r.l}</b><span>·</span><span>${ord(myPos())} in the ${S.lg==='nba'?confNm(confOf(S.team)):'league'}</span></div>`};
@@ -1805,9 +1971,9 @@ function seriesHero(st){
   const dice=st.games.slice(0,vis).map((g,i)=>{const c=g.r==null?'':g.dropped?'dropped':g.r===20?'crit':g.r===1?'fumble':g.ok?'win':'lose';
     return `<button class="dbtn" data-act="sroll" ${over||g.r!=null?'disabled':''}>${dieSVG(20,g.r??'?',c,'sg'+i)}<span class="lbl">G${i+1} ${g.home?'H':'A'}</span></button>`}).join('');
   let tail='';
-  if(!over){const m=stageMods(st,ng),dc=stDC(st);
+  if(!over){const m=stageMods(st,ng),dc=stDC(st),A=advOf(st,ng);
     const last=st.mi>0?st.games[st.mi-1]:null;
-    tail=`${last?`<div class="sum num">G${st.mi}: ${scoreTxt(last.ok,last.sc)}${last.line?` · ${last.line.pts} pts`:''}</div>`:''}<div class="muted small">Game ${st.mi+1} · ${ng.home?'Home':'Road'}</div><div class="mods">${chipsFor(m,dc)}</div>`}
+    tail=`${last?`<div class="sum num">G${st.mi}: ${scoreTxt(last.ok,last.sc)}${last.line?` · ${last.line.pts} pts`:''}</div>`:''}<div class="muted small">Game ${st.mi+1} · ${ng.home?'Home':'Road'}</div><div class="mods">${chipsFor(m,dc,A)}</div>`}
   else{tail=`<div class="verdict v-${st.ok?'good':'bad'} result">${st.ok?(st.final?'Champions!':'Series won'):'Series lost'} ${st.my}–${st.op}</div>${st.ok&&st.final&&s.fmvp?'<div class="banner result">Finals MVP</div>':''}${s.ppts&&s.pgp?`<div class="muted small num">Playoffs: ${f1(s.ppts/s.pgp)} PPG in ${s.pgp} games</div>`:''}`}
   return `<div class="stage"><div class="st-head"><span class="rk po">Playoffs</span><span class="lbl">${esc(st.kicker)} · ${esc(st.title)}</span>
     <div class="vsline"><span class="sd">(${st.mySeed})</span>${crest(S.team,26)}<b>${esc(short(S.team))}</b><span>vs</span>${crest(st.opp,26)}<b>${esc(short(st.opp))}</b>${rivTag(st.opp)}<span class="sd">(${st.opSeed})</span></div></div>
@@ -1822,10 +1988,10 @@ function singleHero(st){
   const dcls=rolled?(st.roll===20?'crit':st.roll===1?'fumble':st.ok?'win':'lose'):'';
   let tail='',btn='';
   if(st.type==='skip'){tail=`<div class="evbox">${esc(st.sub)}</div>`;btn=`<button class="btn" data-act="next">Continue</button>`}
-  else if(!rolled){const m=st.type==='vote'?st.mods:stageMods(st),dc=st.type==='vote'?st.target:stDC(st);tail=`<div class="mods">${chipsFor(m,dc)}</div><div class="muted small">${esc(st.sub)}</div>`;btn=`<button class="btn" data-act="roll">Roll d20</button>`}
+  else if(!rolled){const m=st.type==='vote'?st.mods:stageMods(st),dc=st.type==='vote'?st.target:stDC(st);tail=`<div class="mods">${chipsFor(m,dc,advOf(st))}</div><div class="muted small">${esc(st.sub)}</div>`;btn=`<button class="btn" data-act="roll">Roll d20</button>`}
   else{
     const v=st.type==='vote'?(st.ok?(st.start?'All-Star starter':'All-Star reserve'):'Snubbed'):st.res;
-    tail=`${sumOf(st.roll,st.mods,st.total,st.target)}<div class="verdict v-${st.ok?'good':'bad'} result">${esc(v)}</div>${st.sc?`<div class="muted small num">${scoreTxt(st.ok,st.sc)}</div>`:''}${st.cup&&st.final&&st.ok?`<div class="cuptro">${trophySVG('cup')}</div>`:''}${st.cup&&st.final&&st.ok&&s.cup.mvp?`<div class="banner result">${esc(lg.cupNm)} MVP</div>`:''}`;
+    tail=`${sumOf(st.roll,st.mods,st.total,st.target,st.pair)}<div class="verdict v-${st.ok?'good':'bad'} result">${esc(v)}</div>${st.sc?`<div class="muted small num">${scoreTxt(st.ok,st.sc)}</div>`:''}${st.cup&&st.final&&st.ok?`<div class="cuptro">${trophySVG('cup')}</div>`:''}${st.cup&&st.final&&st.ok&&s.cup.mvp?`<div class="banner result">${esc(lg.cupNm)} MVP</div>`:''}`;
     btn=`<button class="btn" data-act="next">Next</button>`;
   }
   return `<div class="stage"><div class="st-head">${rk}<span class="lbl">${esc(st.kicker)}</span><h3>${esc(st.title)}</h3>${st.opp?vsLine(st.opp,st.home):''}</div>
@@ -1906,6 +2072,7 @@ function createCard(){
       <div class="stack" style="gap:0;min-width:0"><b class="num" style="font-size:20px">${hin?hTxt(hin):'Roll your height'}</b><span class="muted small">${hb}</span></div></div></div>
     <div class="cr-sec"><div class="row" style="justify-content:space-between"><span class="lbl">Attributes · d10 each, tap to roll</span>${allRolled(cr)?'':`<button class="btn ghost sm" data-act="rollall">Roll all</button>`}</div><div class="cdice">${dice}</div></div>
     ${posH}${styles}
+    ${cr.pos&&cr.style?`<div class="cr-sec"><span class="lbl">Background · a trait and a flaw</span><div class="styles trs">${Object.entries(TRAITS).map(([k,t])=>`<button class="stylebtn" data-act="trait" data-v="${k}" aria-pressed="${(cr.trait||'none')===k}"><b>${t[0]}</b><i>${t[1]}</i></button>`).join('')}</div></div>`:''}
     ${ready?scoutHTML(scoutFor(cr),cr.lg):''}
     <div class="cr-foot"><div class="stack" style="gap:0"><span class="lbl">Prospect grade</span><b class="num" style="font-size:22px">${o?o+' OVR':'—'}</b></div>
       <button class="btn" data-act="enter" ${ready?'':'disabled'}>Enter the ${LG[cr.lg].nm} Draft</button></div>
@@ -2267,7 +2434,7 @@ function showToast(){
   let played=false;
   while(toastQ.length){const a=toastQ.shift();
     const el=document.createElement('div'); el.className='toast'+(a.bad?' bad':'')+(a.rec?' rec':'');
-    el.innerHTML=`${achIcon(a.rec?'rec':a.fan?'career':a.g,true,a.bad)}<div class="toast-t"><span class="lbl">${a.rec?'New all-time record':a.fan?'Fan support':a.bad?'Unwanted achievement':'Achievement'}</span><b>${esc(a.n)}</b><span>${esc(a.d)}</span></div>`;
+    el.innerHTML=`${achIcon(a.rec?'rec':a.fan?'career':a.g,true,a.bad)}<div class="toast-t"><span class="lbl">${a.lbl?esc(a.lbl):a.rec?'New all-time record':a.fan?'Fan support':a.bad?'Unwanted achievement':'Achievement'}</span><b>${esc(a.n)}</b><span>${esc(a.d)}</span></div>`;
     box.prepend(el); if(!played){sfx('ach');played=true}
     const hide=()=>{if(!el.isConnected)return;el.classList.add('out');setTimeout(()=>el.remove(),reduce?0:240)};
     el.addEventListener('click',hide); setTimeout(hide,4200);
@@ -2344,8 +2511,8 @@ function lbHTML(){
   }else{
     const g=st.games[st.mi];
     if(sh){const c=sh.r===20?'crit':sh.r===1?'fumble':sh.ok?'win':'lose';die=dieSVG(20,sh.r,c,'lbd');
-      info=`${sumOf(sh.r,sh.mods,sh.tot,sh.dc)}<div class="verdict v-${sh.ok?'good':'bad'}">${scoreTxt(sh.ok,sh.sc)}</div><div class="line">${sh.out?'Out injured':`${sh.line.pts} pts · ${sh.line.reb} reb · ${sh.line.ast} ast`}${sh.inj!=null?` · injury d10 ${sh.inj}: ${sh.injN?`out ${sh.injN} games`:'just a knock'}`:''}</div><div class="nx">Next: ${g.home?'vs':'at'} ${esc(tName(g.opp))}</div>`}
-    else{die=dieSVG(20,'?','','lbd');const m=stageMods(st,g);info=`<div class="mods">${s.out>0?`<span class="chip inj">Out · ${s.out} more</span>`:''}${chipsFor(m,DC(g.opp))}</div><div class="nx">${esc(TIERS[tierOf(teamV(g.opp))])} · ${esc(tName(g.opp))}</div>`}
+      info=`${sumOf(sh.r,sh.mods,sh.tot,sh.dc,sh.pair)}<div class="verdict v-${sh.ok?'good':'bad'}">${scoreTxt(sh.ok,sh.sc)}</div><div class="line">${sh.out?'Out injured':`${sh.line.pts} pts · ${sh.line.reb} reb · ${sh.line.ast} ast`}${sh.inj!=null?` · injury d10 ${sh.inj}: ${sh.injN?`out ${sh.injN} games`:'just a knock'}`:''}</div><div class="nx">Next: ${g.home?'vs':'at'} ${esc(tName(g.opp))}</div>`}
+    else{die=dieSVG(20,'?','','lbd');const m=stageMods(st,g);info=`<div class="mods">${s.out>0?`<span class="chip inj">Out · ${s.out} more</span>`:''}${chipsFor(m,DC(g.opp),advOf(st,g))}</div><div class="nx">${esc(TIERS[tierOf(teamV(g.opp))])} · ${esc(tName(g.opp))}</div>`}
     btn=lbAll?`<button class="btn" data-ov="lbstop">Stop</button>`:`<button class="btn" data-ov="lbroll">Roll d20</button><button class="btn ghost" data-ov="lball">Roll all</button>`;
   }
   return `<div class="ovcard lbpop">${head}<div class="lbdie" data-ov="${done||lbAll?'':pend?'lbinj':'lbroll'}">${die}</div><div class="lbinfo">${info}</div>${nearTable()}<div class="lbbtns">${btn}</div>${done||lbAll?'':`<button class="ovx" data-ov="lbclose" aria-label="Close">×</button>`}</div>`;
@@ -2377,6 +2544,8 @@ function overlay(){
   if(howOpen)return `<div class="ovl" role="dialog" aria-modal="true">${howHTML()}</div>`;
   if(S.phase==='create')return'';
   if(S.phase==='season'&&S.cer)return `<div class="ovl big" role="dialog" aria-modal="true">${cerHTML()}</div>`;
+  if(S.phase==='season'&&S.season&&!S.season.goalSet&&S.season.qi===0&&S.season.cur&&!S.season.cur.mi){if(!S.season.goalOpts)S.season.goalOpts=goalOpts();return `<div class="ovl" role="dialog" aria-modal="true">${goalHTML()}</div>`}
+  if(S.phase==='season'&&S.season&&S.season.card)return `<div class="ovl" role="dialog" aria-modal="true">${cardHTML()}</div>`;
   if(S.phase==='season'&&S.season&&S.season.cur&&S.season.cur.type==='series'&&S.season.cur.big){const st=S.season.cur;
     if(!st.introSeen&&st.mi===0)return `<div class="ovl big" role="dialog" aria-modal="true">${bigIntro(st)}</div>`;
     if(st.done&&st.ok&&!st.celebSeen)return `<div class="ovl big" role="dialog" aria-modal="true">${bigCeleb(st)}</div>`;}
@@ -2488,35 +2657,37 @@ document.addEventListener('click',e=>{
   const s=S.season, st=s.cur;
   if(a==='lbopen'&&st.type==='batch'){s.lbOpen=true;save();render();sfx('click');return}
   if(a==='roll'&&(st.type==='single'||st.type==='vote')&&st.roll==null){
-    const r=d(20), dc=st.type==='vote'?st.target:stDC(st), m=st.type==='vote'?st.mods:stageMods(st), ok=r===20||(r!==1&&r+modSum(m)>=dc);
+    const r=rollFor(st), dc=st.type==='vote'?st.target:stDC(st), m=st.type==='vote'?st.mods:stageMods(st), ok=r===20||(r!==1&&r+modSum(m)>=dc);
     rollDice([document.querySelector('[data-die="main"]')],20,[r],v=>v===20?'crit':v===1?'fumble':ok?'win':'lose',()=>{resolveSingle(r);save();render();sfx(st.ok?(st.final&&st.cup?'title':st.po||st.cup?'qual':'pass'):'fail')});return}
   if(a==='sroll'&&st.type==='series'&&!st.done){rollSeries(st,false);return}
   if(a==='sall'&&st.type==='series'&&!st.done){rollSeries(st,true);return}
   if(a==='roll'&&st.type==='deadline'&&st.roll==null){const r=d(20),tr=r<st.target;rollDice([document.querySelector('[data-die="main"]')],20,[r],v=>v===20?'crit':v===1?'fumble':tr?'lose':'win',()=>{resolveDeadline(r);save();render();sfx(st.tr?'qual':'pass')});return}
   if(a==='tacc'&&st.pending){finishDeadline(true);save();render();sfx('qual');return}
-  if(a==='tblk'&&st.pending){finishDeadline(false);fanAdd(S.team,3,'Blocked a trade to stay');save();render();sfx('click');return}
+  if(a==='tblk'&&st.pending){finishDeadline(false);fanAdd(S.team,3,'Blocked a trade to stay');inspire('Stood by your team');save();render();sfx('click');return}
   if(a==='next'&&(st.done||st.type==='skip')){sfx('click');advance();return}
 });
 function rollSeries(st,all){
   const n=Math.ceil(st.bo/2), idx=[], rolls={}, cls={};
   /* work out the outcome first: roll all stops when the series is decided, and each die lands in its colour */
   let my=st.my,op=st.op;
-  for(let i=st.mi;i<st.bo&&my<n&&op<n;i++){const r=d(20);rolls[i]=r;idx.push(i);const E=evalSeriesGame(st,i,r);if(E.ok)my++;else op++;cls[i]=r===20?'crit':r===1?'fumble':E.ok?'win':'lose';if(!all)break}
+  const pairs={}, sm=st.my, so=st.op;
+  for(let i=st.mi;i<st.bo&&my<n&&op<n;i++){st.my=my;st.op=op;const r=rollFor(st,st.games[i]);pairs[i]=lastPair;rolls[i]=r;idx.push(i);const E=evalSeriesGame(st,i,r);if(E.ok)my++;else op++;cls[i]=r===20?'crit':r===1?'fumble':E.ok?'win':'lose';if(!all)break}
+  st.my=sm; st.op=so;
   st.vis=Math.max(st.mi+n-Math.max(st.my,st.op),st.mi+idx.length); render();
   const els=st.games.map((g,i)=>idx.includes(i)?document.querySelector(`[data-die="sg${i}"]`):null), fin=st.games.map((g,i)=>rolls[i]);
   rollDice(els,20,fin,(v,i)=>cls[i],()=>{
-    idx.forEach(i=>playSeriesGame(st,i,rolls[i]));delete st.vis;save();render();
+    idx.forEach(i=>{lastPair=pairs[i];playSeriesGame(st,i,rolls[i])});delete st.vis;save();render();
     if(st.done)sfx(st.ok?(st.final?'title':'qual'):(st.final?'finalLoss':'elim'));else{const g=st.games[st.mi-1];sfx(g&&g.ok?'pass':'fail')}
   },all);
 }
 let lbRolling=false;
 function lbRoll(){
   const s=S.season, st=s.cur; if(!st||st.type!=='batch'||st.done)return;
-  const i=st.mi, r=d(20), E=evalGame(st,i,r);
+  const i=st.mi, r=rollFor(st,st.games[i]), E=evalGame(st,i,r), lp=lastPair;
   lbRolling=true; render();   /* show the game being rolled before the die spins */
   const el=document.querySelector('[data-die="lbd"]');
   rollDice([el],20,[r],v=>v===20?'crit':v===1?'fumble':E.ok?'win':'lose',()=>{
-    lbRolling=false; playGame(st,i,r); save();
+    lbRolling=false; lastPair=lp; playGame(st,i,r); save();
     const g=st.games[i];
     if(g.injPending){lbAll=false;render();sfx('nat1');return}
     render(); sfx(st.done?'seasonEnd':r===20?'nat20':g.ok?'pass':'fail');
@@ -2531,11 +2702,18 @@ function onCreate(a,v){
   else if(a==='attr'&&!cr.rolls[v]){const r=d(10);rollDice([document.querySelector(`[data-die="a-${v}"]`)],10,[r],dieCls(10),()=>{cr.rolls[v]=r;save();render()});return}
   else if(a==='rollall'){const ks=AK.filter(k=>!cr.rolls[k]);const fin=ks.map(()=>d(10));rollDice(ks.map(k=>document.querySelector(`[data-die="a-${k}"]`)),10,fin,dieCls(10),()=>{ks.forEach((k,i)=>cr.rolls[k]=fin[i]);save();render()});return}
   else if(a==='style')cr.style=v;
+  else if(a==='trait')cr.trait=v;
   else if(a==='enter'&&cr.pos&&cr.hd&&allRolled(cr)&&cr.style){startCareer();view='game';sfx('click')}
   save();render();
 }
 function onOv(k,v){
   if(k==='introgo'){S.season.cur.introSeen=true;save();render();sfx('click');return}
+  if(k==='insp'){if(S.insp){S.useInsp=!S.useInsp;save();render();sfx('click')}return}
+  if(k==='gpick'){goalPick(+v);save();render();sfx('click');return}
+  if(k==='cpick'){const s=S.season,C=s&&s.card;if(!C||C.pick!=null)return;const o=cardOf(C).o[+v];C.pick=+v;
+    if(o.chk){render();const r=d(20),md=chkMod(o.chk.a),ok=r===20||(r!==1&&r+md>=o.chk.dc);rollDice([document.querySelector('[data-die="chk"]')],20,[r],x=>x===20?'crit':x===1?'fumble':ok?'win':'lose',()=>{cardResolve(r);save();render();sfx(ok?'pass':'fail')});return}
+    cardResolve(null);save();render();sfx('click');return}
+  if(k==='cdone'){S.season.card=null;save();render();sfx('click');return}
   if(k==='cergo'){S.cer=null;save();render();sfx('click');return}
   if(k==='celebgo'){S.season.cur.celebSeen=true;save();render();sfx('click');return}
   if(k==='howclose'){howOpen=false;render();return}
