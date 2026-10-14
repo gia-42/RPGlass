@@ -558,19 +558,29 @@ img.complogo.lchip{background:#fff;border-radius:6px;padding:2px 5px;box-sizing:
 .sparks i{position:absolute;bottom:-10px;width:4px;height:4px;border-radius:50%;background:#f2c14e;box-shadow:0 0 8px #f2c14e;z-index:2;animation:floatUp linear infinite;opacity:0}
 @keyframes floatUp{0%{opacity:0;transform:translateY(0)}15%{opacity:.9}100%{opacity:0;transform:translateY(-110vh)}}
 /* celebration */
+
+/* scouting report */
+.scout{border:1px solid var(--rule);border-radius:12px;padding:12px 14px;gap:8px;background:color-mix(in srgb,var(--accent) 5%,transparent)}
+.sc-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.sc-comp{display:flex;flex-direction:column;line-height:1.1}.sc-comp span{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}.sc-comp b{font-size:20px}
+.sc-tier{font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--ink);color:var(--bg);white-space:nowrap}
+.sc-tier.t0,.sc-tier.t1{background:#f2c14e;color:#1b1405}.sc-tier.t2{background:var(--accent);color:#fff}
+.sc-nums{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.sc-nums div{display:flex;flex-direction:column;align-items:center;padding:6px 2px;border-radius:8px;background:var(--bg)}
+.sc-nums b{font-family:var(--f-num);font-size:17px;font-weight:600}.sc-nums span{font-size:10px;color:var(--ink-2);text-align:center;line-height:1.2}
 /* trophies */
 .tr-t{width:13px;height:16px;flex:none;display:inline-block;vertical-align:-3px;margin:-1px 4px -1px -2px}
 .cup{display:inline-flex;align-items:center}
 .eos-chip .tr-t{width:14px;height:17px;margin:-2px 0 -2px -3px}
-.shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px 6px;padding:12px 10px 10px;border-radius:12px;background:linear-gradient(180deg,var(--card,transparent) 0%,var(--card,transparent) 100%);border:1px solid var(--line)}
+.shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px 6px;padding:12px 10px 10px;border-radius:12px;background:linear-gradient(180deg,var(--card,transparent) 0%,var(--card,transparent) 100%);border:1px solid var(--rule)}
 .tro{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;padding-bottom:6px;border-bottom:3px solid color-mix(in srgb,var(--ink) 14%,transparent)}
 .tro svg{width:46px;height:58px}
 .tro b{position:absolute;top:-4px;right:6px;font-family:var(--f-num);font-size:11px;font-weight:600;padding:0 5px;border-radius:999px;background:var(--ink);color:var(--bg)}
-.tro span{font-size:10.5px;line-height:1.2;color:var(--muted)}
+.tro span{font-size:10.5px;line-height:1.2;color:var(--ink-2)}
 .rings{display:flex;flex-wrap:wrap;gap:10px}
 .rg{display:flex;flex-direction:column;align-items:center;gap:2px}
 .rg .ring-i{width:40px;height:40px}
-.rg span{font-family:var(--f-num);font-size:10.5px;color:var(--muted)}
+.rg span{font-family:var(--f-num);font-size:10.5px;color:var(--ink-2)}
 .ovcard .ov-icon.tr{width:72px;height:90px}
 .cuptro{display:flex;justify-content:center}.cuptro svg{width:66px;height:82px;animation:rise 1.1s .1s cubic-bezier(.2,.9,.3,1) both;filter:drop-shadow(0 0 16px rgba(242,193,78,.45))}
 .btro-i.tr{width:80px;height:100px}.btro.big .btro-i.tr{width:120px;height:150px}
@@ -924,7 +934,7 @@ const SFX={
 const sfx=(k,...a)=>{try{if(soundOn&&ac())SFX[k](...a)}catch(e){}};
 
 /* ================= state ================= */
-const APP_VER='0.15';
+const APP_VER='0.16';
 let setOpen=false, howOpen=false, quitArm=false;
 let diceFast=(()=>{try{return localStorage.getItem('rpglass-dice')==='fast'}catch(e){return false}})();
 let allSpd=(()=>{try{return localStorage.getItem('rpglass-allspd')||'f'}catch(e){return'f'}})();
@@ -1011,15 +1021,124 @@ function crAttrs(cr){
   AK.forEach(k=>a[k]=clamp(a[k],1,20));return a;
 }
 const allRolled=cr=>AK.every(k=>cr.rolls[k]);
+/* ================= scouting projection ================= */
+/* from 6,400 simulated careers (0.16): [ovr0 bucket start, median peak, 90th pct peak, All-Star %, MVP %, ring %, Hall of Fame %] */
+const PROJ={nba:[[46,64,68,0,0,8,0],[49,69,73,3,0,7,0],[52,72,77,15,0,15,1],[55,74,79,24,1,20,3],[58,77,82,44,2,34,11],[61,80,85,64,10,41,30],[64,83,88,81,23,56,50],[67,86,90,92,52,75,78],[70,89,92,96,73,84,96]],
+  wnba:[[46,61,63,3,0,0,0],[49,63,67,1,0,16,0],[52,66,70,2,0,14,0],[55,70,74,9,0,22,0],[58,73,77,30,0,29,3],[61,76,80,60,1,43,14],[64,79,83,78,5,54,36],[67,82,85,87,17,63,63],[70,85,89,97,35,78,97]]};
+function projectFor(o,lg){
+  const T=PROJ[lg], x=o-1.5;
+  let i=0;while(i<T.length-2&&x>=T[i+1][0])i++;
+  const a=T[i],b=T[i+1],t=clamp((x-a[0])/(b[0]-a[0]),-.6,1.6),f=j=>a[j]+(b[j]-a[j])*t;
+  const p={peak:clamp(Math.round(f(1)),55,97),hi:clamp(Math.round(f(2)),58,99),as:clamp(Math.round(f(3)),0,99),mvp:clamp(Math.round(f(4)),0,95),ring:clamp(Math.round(f(5)),0,95),hof:clamp(Math.round(f(6)),0,99)};
+  p.tier=p.mvp>=35?0:p.as>=75?1:p.as>=45?2:p.as>=18?3:p.as>=6?4:5;
+  return p;
+}
+const PTIER=[['Generational prospect','Scouts see a future MVP. Anything short of a Hall of Fame career would be a surprise.'],
+  ['Franchise cornerstone','A face-of-the-franchise talent. All-Star games are expected; the question is how many rings.'],
+  ['All-Star upside','Real All-Star potential if the development goes right.'],
+  ['Starter with upside','Projects as a solid starter. An All-Star nod would be a breakout.'],
+  ['Rotation player','A useful rotation piece. Minutes will have to be earned.'],
+  ['Long shot','A fringe prospect. Making a roster is the first battle.']];
+const PTIERS=['star','star','star','mid','role','role'];
+/* comparisons: [name, tier, positions, height in inches, attribute weights] */
+const COMPS={nba:[
+  ['Stephen Curry','star','PG SG',74,{sho:3,clu:1.5,ply:1,iq:.5}],
+  ['Jalen Brunson','star','PG',74,{clu:2,sho:1.2,iq:1.2,fin:1,ath:-.8}],
+  ['Shai Gilgeous-Alexander','star','PG SG',78,{fin:2,clu:1.5,sho:1,def:.8}],
+  ['LeBron James','star','SF PF',81,{ath:2,ply:2,iq:1.5,fin:1.5,reb:.5}],
+  ['Kevin Durant','star','SF PF',83,{sho:2.5,fin:1.5,clu:.8}],
+  ['Giannis Antetokounmpo','star','PF SF',83,{ath:2.5,fin:2,reb:1,def:1,sho:-1.5}],
+  ['Nikola Jokić','star','C',83,{ply:2.5,iq:2.5,reb:1.5,ath:-1.5}],
+  ['Victor Wembanyama','star','C PF',88,{def:2,sho:1,reb:1,ath:1}],
+  ["Shaquille O'Neal",'star','C',85,{fin:2.5,reb:2,ath:1,sho:-2}],
+  ['Kawhi Leonard','star','SF',79,{def:2.5,sho:1.5,clu:1}],
+  ['Kobe Bryant','star','SG',78,{clu:2.5,fin:2,sho:1.5}],
+  ['Anthony Edwards','star','SG',76,{ath:2.5,fin:2,sho:.8}],
+  ['Russell Westbrook','star','PG',75,{ath:2.5,ply:1.5,reb:1,sho:-1.5}],
+  ['Chris Paul','star','PG',72,{ply:2.5,iq:2.5,def:1,ath:-1}],
+  ['Tim Duncan','star','PF C',83,{iq:2,def:2,reb:1.5,fin:1}],
+  ['Dirk Nowitzki','star','PF',84,{sho:2.5,clu:1.5,ath:-1}],
+  ['Luka Dončić','star','PG SG',79,{ply:2,clu:2,iq:1.5,ath:-1.5}],
+  ['Allen Iverson','star','SG PG',72,{ath:2,fin:2,clu:1.5}],
+  ['Klay Thompson','mid','SG SF',78,{sho:2.5,def:1.5}],
+  ['Draymond Green','mid','PF',78,{def:2,iq:2,ply:1.5,sho:-1.5}],
+  ['Jrue Holiday','mid','PG SG',76,{def:2.5,iq:1.5}],
+  ['Rudy Gobert','mid','C',85,{def:2.5,reb:2.5,sho:-2,ply:-1}],
+  ['Ja Morant','mid','PG',74,{ath:2.5,fin:2,sho:-1}],
+  ['Fred VanVleet','mid','PG',72,{sho:1.5,iq:1.5,clu:1}],
+  ['Brook Lopez','mid','C',85,{sho:2,def:1.5,ath:-1.5}],
+  ['Mikal Bridges','mid','SF SG',78,{def:2,sho:1.2}],
+  ['Domantas Sabonis','mid','C PF',85,{reb:2.5,ply:1.5,fin:1}],
+  ['Derrick White','mid','PG SG',76,{def:1.5,iq:1.5,sho:1}],
+  ['Alex Caruso','role','SG PG',77,{def:2.5,iq:1.5,ath:1}],
+  ['P.J. Tucker','role','PF SF',77,{def:2,reb:1,sho:.8,ath:-.5}],
+  ['Duncan Robinson','role','SF SG',79,{sho:3,def:-1}],
+  ['Dennis Rodman','role','PF',79,{reb:3,def:2,sho:-2}],
+  ['Steven Adams','role','C',83,{reb:2.5,fin:1}],
+  ['Matthew Dellavedova','role','PG',76,{ply:1.5,iq:1.5,ath:-1}],
+  ['Kenneth Faried','role','PF',80,{ath:2,reb:2}],
+  ['J.J. Redick','role','SG',76,{sho:2.5,iq:1}],
+  ['Mitchell Robinson','role','C',84,{ath:1.5,def:2,reb:1.5}]],
+ wnba:[
+  ['Caitlin Clark','star','PG',72,{sho:2.5,ply:2.5,clu:1}],
+  ["A'ja Wilson",'star','PF C',76,{fin:2.5,reb:1.5,def:1.5}],
+  ['Breanna Stewart','star','PF SF',76,{sho:2,fin:1,def:1,ply:1}],
+  ['Diana Taurasi','star','SG',72,{clu:2.5,sho:2}],
+  ['Sue Bird','star','PG',69,{ply:2.5,iq:2.5,sho:1}],
+  ['Candace Parker','star','PF',76,{ply:1.5,reb:1.5,fin:1.5,iq:1}],
+  ['Napheesa Collier','star','PF SF',73,{def:2,fin:1.5,iq:1.2}],
+  ['Brittney Griner','star','C',80,{fin:2,def:2,reb:1}],
+  ['Maya Moore','star','SF',72,{clu:2,sho:1.5,fin:1}],
+  ['Sabrina Ionescu','star','PG SG',71,{sho:2,ply:1.5,reb:1}],
+  ['Paige Bueckers','star','PG SG',72,{iq:2,sho:1.5,ply:1.5}],
+  ['Lisa Leslie','star','C',77,{fin:1.5,reb:1.5,def:1.5,ath:1}],
+  ['Sylvia Fowles','star','C',78,{reb:2.5,def:2,fin:1}],
+  ['Alyssa Thomas','mid','PF',74,{ply:2,reb:2,ath:1.5,sho:-2}],
+  ['Arike Ogunbowale','mid','SG',68,{fin:2,clu:1.5,sho:1}],
+  ['Jewell Loyd','mid','SG',70,{sho:2,fin:1}],
+  ['Angel Reese','mid','PF',75,{reb:3,fin:1,sho:-1}],
+  ['Courtney Vandersloot','mid','PG',68,{ply:3,iq:1.5}],
+  ['Kelsey Plum','mid','SG PG',68,{sho:2,fin:1.2,ath:1}],
+  ['Aliyah Boston','mid','C',77,{reb:1.5,def:1.5,fin:1.5,iq:1}],
+  ['Jonquel Jones','mid','C PF',78,{sho:1.5,reb:2}],
+  ['Alysha Clark','role','SF',71,{def:2.5,sho:1}],
+  ['Natasha Cloud','role','PG',72,{def:1.5,ply:1.5}],
+  ['Allie Quigley','role','SG',70,{sho:3}],
+  ['Brionna Jones','role','C',75,{fin:2,reb:1}],
+  ['Erica Wheeler','role','PG',67,{ath:1.5,ply:1}],
+  ['DiJonai Carrington','role','SG',71,{def:2.5,ath:1.5}],
+  ['Rebekkah Brunson','role','PF',74,{reb:2.5,def:1.5}]]};
+function compsFor(cr,tier){
+  const h=heightIn(cr), list=COMPS[cr.lg].filter(c=>c[1]===tier);
+  return list.map(c=>{let sc=0,n=0;Object.entries(c[4]).forEach(([k,w])=>{sc+=w*((cr.rolls[k]||5.5)-5.5);n+=Math.abs(w)});sc=sc/n*3;
+    if(!c[2].split(' ').includes(cr.pos))sc-=3;sc-=Math.abs(h-c[3])*.35;return {c,sc}}).sort((x,y)=>y.sc-x.sc);
+}
+function scoutFor(cr){
+  const a=crAttrs(cr), o=ovrOf(a,cr.pos,cr.style), p=projectFor(o,cr.lg), cs=compsFor(cr,PTIERS[p.tier]);
+  const best=cs[0].c, alt=cs[1]&&cs[1].c;
+  const keys=Object.entries(best[4]).filter(([k,w])=>w>0).sort((x,y)=>(cr.rolls[y[0]]||0)-(cr.rolls[x[0]]||0)).slice(0,2).map(([k])=>AN[k].toLowerCase());
+  return {o,...p,comp:best[0],alt:alt?alt[0]:null,why:`${keys.join(' and ')} on a ${fmtH(heightIn(cr))} frame`};
+}
+function scoutHTML(sc,lg){
+  const [t,d]=PTIER[sc.tier];
+  return `<div class="cr-sec scout"><span class="lbl">Scouting report</span>
+    <div class="sc-top"><div class="sc-comp"><span>The next</span><b>${esc(sc.comp)}</b></div><span class="sc-tier t${sc.tier}">${t}</span></div>
+    <p class="muted small" style="margin:0">${esc(sc.why[0].toUpperCase()+sc.why.slice(1))}${sc.alt?`, with shades of ${esc(sc.alt)}`:''}. ${d}</p>
+    <div class="sc-nums"><div><b>${sc.peak}</b><span>Projected peak</span></div><div><b>${sc.hi}</b><span>Ceiling</span></div><div><b>${sc.as}%</b><span>All-Star odds</span></div><div><b>${sc.mvp<1?'<1':sc.mvp}%</b><span>MVP odds</span></div></div>
+    <p class="muted small" style="margin:0;font-size:11.5px">A quick projection from your first rolls, based on players like you. Players outgrow projections all the time — and fall short of them.</p></div>`;
+}
+function projVerdict(){const p=S.proj;if(!p||!S.hist.length)return'';const pk=Math.max(...S.hist.map(h=>h.ovr)),d=pk-p.peak;
+  return d>=4?'Beat the projection':d<=-4?'Fell short of the projection':'Lived up to the projection'}
+
 
 /* ================= career ================= */
 function startCareer(){
-  const cr=S.cr, lg=LG[cr.lg];
+  const cr=S.cr, lg=LG[cr.lg], proj=cr.pos&&cr.style&&allRolled(cr)?scoutFor(cr):null;
   S={v:2,cid:Date.now().toString(36)+Math.random().toString(36).slice(2,6),phase:'draft',lg:cr.lg,name:(cr.name||'').trim()||randName(cr.lg),pos:cr.pos,style:cr.style,height:heightIn(cr),attrs:crAttrs(cr),
     age:lg.age(),year:lg.start,team:null,role:0,contract:null,tv:{},hist:[],draft:null,season:null,off:null,ovr0:null,champs:[]};
   lg.teams.forEach(t=>S.tv[t[0]]=clamp(t[6]+(rnd()-.5)*1.4,1,5.2));
   S.hd=cr.hd; S.tens=AK.filter(k=>cr.rolls[k]===10).length; S.recs={}; S.fans={}; S.fanLog=[]; S.stints=[];
-  S.ovr0=ovr(); save();
+  S.ovr0=ovr(); S.proj=proj; save();
 }
 function draftMod(){return clamp(Math.round((ovr()-60)/2.5),-2,8)}
 function draftPick(score){const lg=L();return lg.rounds===2?clamp(Math.round(61-score*2.9),1,61):clamp(Math.round(46-score*2.1),1,46)}
@@ -1148,7 +1267,7 @@ function playGame(st,i,r){
   if(st.cup){g.ok?me.cw++:me.cl++}
   simRound([S.team,g.opp]);
   if(g.out){s.out--}
-  else{const ln=gameLine(E.tot-E.dc);g.line=ln;s.gp++;s.pts+=ln.pts;s.reb+=ln.reb;s.ast+=ln.ast;s.hi=Math.max(s.hi,ln.pts);{const tt=S.lg==='wnba'?8:10;if(ln.pts>=tt&&ln.reb>=tt&&ln.ast>=tt)s.td++}if(r===1)g.injPending=true}
+  else{const ln=gameLine(E.tot-E.dc);g.line=ln;s.gp++;s.pts+=ln.pts;s.reb+=ln.reb;s.ast+=ln.ast;s.hi=Math.max(s.hi,ln.pts);{const tt=S.lg==='wnba'?7:10;if(ln.pts>=tt&&ln.reb>=tt&&ln.ast>=tt)s.td++}if(r===1)g.injPending=true}
   st.mi=i+1; st.shown=i;
   if(st.mi>=st.games.length&&!g.injPending)finishBatch(st);
 }
@@ -1369,13 +1488,13 @@ function finishSeason(){
 /* legacy is judged by what each position does: rebounds and assists count with position weights,
    and each playstyle gets a factor (calibrated on 3,200 simulated careers) so every build has the same shot at the Hall of Fame */
 const LEGW={PG:[1.0,2.0],SG:[1.2,1.6],SF:[1.3,1.6],PF:[1.3,1.8],C:[1.2,2.0]};
-const LEGF={"C:rp": 0.95, "PG:fg": 0.75, "SF:pf": 1.35, "PF:br": 0.85, "SG:3d": 1.15, "SG:ss": 0.75, "SF:sc": 1.0, "PG:sg": 0.95, "PF:st": 1.2, "PF:do": 1.05, "C:po": 0.9, "PG:tw": 1.25, "SG:sl": 1.0, "C:sb": 1.25, "SF:lw": 1.15};
+const LEGF={"nba":{"C:po":0.97,"C:rp":1.05,"C:sb":1.4,"PF:br":0.96,"PF:do":1.18,"PF:st":1.36,"PG:fg":0.74,"PG:sg":0.96,"PG:tw":1.13,"SF:lw":1.08,"SF:pf":1.24,"SF:sc":0.93,"SG:3d":1.08,"SG:sl":0.92,"SG:ss":0.7},"wnba":{"C:po":0.94,"C:rp":1.02,"C:sb":1.46,"PF:br":0.97,"PF:do":1.12,"PF:st":1.35,"PG:fg":0.72,"PG:sg":0.92,"PG:tw":1.27,"SF:lw":1.02,"SF:pf":1.21,"SF:sc":0.91,"SG:3d":1.13,"SG:sl":0.98,"SG:ss":0.65}};
 const awLeg=x=>/^MVP$/.test(x)?16:/Finals MVP/.test(x)?8:/Defensive Player/.test(x)?8:/1st Team/.test(x)?5:/2nd Team|3rd Team/.test(x)?3:/Assists leader/.test(x)?3:/Rookie of/.test(x)?3:/^All-Star/.test(x)?2:/All-Defensive/.test(x)?2:1;
 function legacy(H,pos,style,lg){
   pos=pos||S.pos; style=style||S.style; lg=lg||S.lg; const [wr,wa]=LEGW[pos]||[1.2,1.6];
   let sc=0; H.forEach(h=>{const gp=h.gp||0,prod=(h.pts??h.ppg*gp)+wr*(h.reb??h.rpg*gp)+wa*(h.ast??h.apg*gp);
     sc+=1+h.ring*14+(h.cup?2:0)+prod/1000*2;h.aw.forEach(x=>sc+=awLeg(x))});
-  return Math.round(sc*(lg==='wnba'?1.6:1)*(LEGF[pos+':'+style]||1));
+  return Math.round(sc*(lg==='wnba'?1.6:1)*((LEGF[lg]||{})[pos+':'+style]||1));
 }
 
 const count=(H,re)=>H.reduce((a,h)=>a+h.aw.filter(x=>re.test(x)).length,0);
@@ -1706,6 +1825,7 @@ function createCard(){
       <div class="stack" style="gap:0;min-width:0"><b class="num" style="font-size:20px">${hin?`${fmtH(hin)} · ${cm(hin)} cm`:'Roll your height'}</b><span class="muted small">${hb}</span></div></div></div>
     <div class="cr-sec"><div class="row" style="justify-content:space-between"><span class="lbl">Attributes · d10 each, tap to roll</span>${allRolled(cr)?'':`<button class="btn ghost sm" data-act="rollall">Roll all</button>`}</div><div class="cdice">${dice}</div></div>
     ${posH}${styles}
+    ${ready?scoutHTML(scoutFor(cr),cr.lg):''}
     <div class="cr-foot"><div class="stack" style="gap:0"><span class="lbl">Prospect grade</span><b class="num" style="font-size:22px">${o?o+' OVR':'—'}</b></div>
       <button class="btn" data-act="enter" ${ready?'':'disabled'}>Enter the ${LG[cr.lg].nm} Draft</button></div>
   </div>`;
@@ -1714,7 +1834,7 @@ function retiredCard(){
   const F=S.final||{};
   return `<div class="stage"><div class="st-head"><span class="rk">Retired</span><span class="lbl">${esc(F.yrs||'')}</span><h3>${esc(S.name)}</h3></div>
     <div class="st-tail"><div class="numgrid n4" style="width:100%"><div><span class="lbl">Legacy</span><b>${F.score}</b></div><div><span class="lbl">Rings</span><b>${F.rings}</b></div><div><span class="lbl">Points</span><b>${(F.pts||0).toLocaleString('en-US')}</b></div><div><span class="lbl">PPG</span><b>${f1(F.ppg||0)}</b></div></div>
-    <div class="muted small">${F.score>=150?'A first-ballot Hall of Famer.':F.score>=80?'A career people will remember.':'A pro career most only dream about.'}</div></div>
+    <div class="muted small">${F.score>=150?'A first-ballot Hall of Famer.':F.score>=80?'A career people will remember.':'A pro career most only dream about.'}${S.proj?` Projected as the next ${esc(S.proj.comp)}: ${projVerdict().toLowerCase()}.`:''}</div></div>
     <div class="st-act"><button class="btn" data-act="newcar">New career</button></div></div>`;
 }
 function gameView(){
@@ -1861,7 +1981,7 @@ function careerView(){
   const rows=H.slice().reverse().map(h=>`<div class="srow"><div class="syr">${lg.yl(h.yr)}<span>${h.age} yrs · ${h.ovr} OVR</span></div><div><div class="sclub">${crest(h.team,16)}${esc(tName(h.team))}</div><div class="sleague">${ROLES[h.role]} · ${h.w}–${h.l} · ${esc(h.po)}${h.from?` · traded from ${esc(short(h.from))}`:''}</div>${h.aw.length||h.ring||h.cup||confWon(h)?`<div class="cabinet">${h.ring?`<span class="cup ring">${titleIco()}Champion</span>`:''}${confWon(h)&&!h.ring?`<span class="cup">${confIco(confOf(h.team))}${confNm(confOf(h.team))} champion</span>`:''}${h.cup?`<span class="cup">${cupIco()}${esc(lg.cupNm)}</span>`:''}${h.aw.map(x=>`<span class="cup">${awIco(x)}${esc(x)}</span>`).join('')}</div>`:''}</div>
     <div class="sstats"><span class="lbl">PPG</span><span class="lbl">RPG</span><span class="lbl">APG</span><b>${f1(h.ppg)}</b><b>${f1(h.rpg)}</b><b>${f1(h.apg)}</b></div></div>`).join('');
   return `<section class="panel scrollp stack cv" style="gap:14px">
-    <div class="cv-top"><div class="stack" style="gap:2px;min-width:0"><span class="lbl">${S.pos} · ${esc(styleOf()[1])} · ${lg.yl(H[0].yr)} → ${lg.yl(H[H.length-1].yr)}</span><h2>${esc(S.name)}</h2><span class="muted small">${H.length} season${H.length>1?'s':''} · ${stints.length} team${stints.length>1?'s':''} · peak ${Math.max(...H.map(h=>h.ovr))} OVR</span></div>
+    <div class="cv-top"><div class="stack" style="gap:2px;min-width:0"><span class="lbl">${S.pos} · ${esc(styleOf()[1])} · ${lg.yl(H[0].yr)} → ${lg.yl(H[H.length-1].yr)}</span><h2>${esc(S.name)}</h2><span class="muted small">${H.length} season${H.length>1?'s':''} · ${stints.length} team${stints.length>1?'s':''} · peak ${Math.max(...H.map(h=>h.ovr))} OVR</span>${S.proj?`<span class="muted small">Draft-night projection: ${PTIER[S.proj.tier][0].toLowerCase()}, the next ${esc(S.proj.comp)}, peak ${S.proj.peak}${S.phase==='retired'||S.age>=28?` · <b>${projVerdict()}</b>`:''}</span>`:''}</div>
       <div class="rating"><div class="big num">${legacy(H)}</div><div class="lbl">Legacy</div></div></div>
     <div class="numgrid"><div><span class="lbl">Games</span><b>${gp.toLocaleString('en-US')}</b></div><div><span class="lbl">Points</span><b>${Math.round(pts).toLocaleString('en-US')}</b></div><div><span class="lbl">Rebs</span><b>${Math.round(reb).toLocaleString('en-US')}</b></div><div><span class="lbl">Asts</span><b>${Math.round(ast).toLocaleString('en-US')}</b></div><div><span class="lbl">Rings</span><b>${rings}</b></div>
       <div><span class="lbl">PPG</span><b>${f1(pts/gp||0)}</b></div><div><span class="lbl">RPG</span><b>${f1(reb/gp||0)}</b></div><div><span class="lbl">APG</span><b>${f1(ast/gp||0)}</b></div><div><span class="lbl">High</span><b>${hiG}</b></div><div><span class="lbl">PO PPG</span><b>${poGp?f1(poPts/poGp):'—'}</b></div></div>
@@ -1942,9 +2062,9 @@ const ACH=[
  ['tower','Skyscraper','Roll a 10 for your height.','draft',()=>S.hd===10],
  ['gifted','Gifted','Roll three or more 10s on your attributes.','draft',()=>(S.tens||0)>=3],
  ['nat20','Natural talent','Roll a natural 20 in the Finals.','games',()=>fl('n20f')],
- ['forty','Heat check','Score 40 points in a game.','games',()=>Math.max(live('hi'),SS()?SS().phi:0)>=40],
- ['fifty','Fifty bomb','Score 50 points in a game (40 in the WNBA).','games',()=>Math.max(live('hi'),SS()?SS().phi:0)>=(W_()?40:50)],
- ['td','Triple-double','Get 10 points, 10 rebounds and 10 assists in one game (8 in the WNBA).','games',()=>hs(h=>h.td)||!!(SS()&&SS().td)],
+ ['forty','Heat check','Score 40 points in a game (30 in the WNBA).','games',()=>Math.max(live('hi'),SS()?SS().phi:0)>=(W_()?30:40)],
+ ['fifty','Fifty bomb','Score 50 points in a game (35 in the WNBA).','games',()=>Math.max(live('hi'),SS()?SS().phi:0)>=(W_()?35:50)],
+ ['td','Triple-double','Get 10 points, 10 rebounds and 10 assists in one game (7 in the WNBA).','games',()=>hs(h=>h.td)||!!(SS()&&SS().td)],
  ['streak10','On a heater','Win 10 games in a row.','games',()=>live('mstrk')>=10],
  ['clean','Clean stretch','Win every game in a stretch of four or more.','games',()=>hs(h=>h.perfect)||!!(SS()&&SS().perfect)],
  ['winning','Winning culture','Finish eight regular seasons above .500.','season',()=>HH().filter(h=>h.w>h.l).length>=8],
@@ -1969,7 +2089,7 @@ const ACH=[
  ['starter','Voted in','Be voted an All-Star starter.','awards',()=>awN(/All-Star starter/)>=1||!!(SS()&&SS().allStar===2)],
  ['first1','First team','Make the All-NBA or All-WNBA First Team.','awards',()=>awN(/1st Team/)>=1],
  ['mvp','Most Valuable','Win MVP.','awards',()=>awN(/^MVP$/)>=1],
- ['mvp3','Three-time MVP','Win three MVP awards.','awards',()=>awN(/^MVP$/)>=3],
+ ['mvp3','Multiple MVP','Win three MVP awards (two in the WNBA).','awards',()=>awN(/^MVP$/)>=(W_()?2:3)],
  ['dpoy','Lockdown','Win Defensive Player of the Year.','awards',()=>awN(/Defensive Player/)>=1],
  ['sixth','Spark plug','Win Sixth Player of the Year.','awards',()=>awN(/Sixth/)>=1],
  ['mip','Most Improved','Win Most Improved Player.','awards',()=>awN(/Most Improved/)>=1],
