@@ -29,7 +29,12 @@
   sb = window.supabase.createClient(C.supabaseUrl, C.supabaseAnonKey, { auth: { persistSession: true, detectSessionInUrl: true, flowType: 'pkce' } });
 
   /* ----- which copy of a career to keep ----- */
-  const progress = c => !c || !c.phase ? -1 : c.phase === 'create' ? 0 : 1 + (c.hist ? c.hist.length : 0) * 1000 + (c.season ? (c.season.qi || 0) * 20 + (c.season.gp || 0) : 0) + (c.phase === 'retired' ? 900 : 0);
+  /* year first, then seasons finished, then where you are in the year: draft < season (stage, games) < offseason < retired.
+     The last season's games only count while it's being played, so starting a new season never looks like going backwards. */
+  const progress = c => !c || !c.phase ? -1 : c.phase === 'create' ? 0 :
+    1 + ((c.year || 0) - 1900) * 1e7 + (c.hist ? c.hist.length : 0) * 1e5 +
+    (c.phase === 'retired' ? 9e4 : c.phase === 'off' ? 5e4 + (['eos', 'retire', 'summer', 'legend', 'fa', 'trade', 'welcome'].indexOf(c.off && c.off.step) + 1) * 100
+      : c.phase === 'season' && c.season ? 500 + (c.season.qi || 0) * 1000 + (c.season.gp || 0) : 0);
   function decide(cloud, local) {
     if (!cloud || !cloud.phase) return 'local';
     if (!local || !local.phase) return 'cloud';
