@@ -335,7 +335,7 @@ input[type=text]{font:inherit;font-size:16px;background:var(--card);color:var(--
 .wd.cur{outline:2px solid #8193ff;outline-offset:1px}
 .lbdie{height:112px;display:flex;align-items:center;justify-content:center;width:100%;cursor:pointer}
 .lbdie .die{height:100%;width:auto;max-width:none}
-.lbinfo{min-height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:100%}
+.lbinfo{height:124px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:100%}
 .lbinfo .sum{font-size:12.5px;color:var(--ov-ink-2)} .lbinfo .sum b{color:#9cb0ff}
 .lbinfo .verdict{font-size:20px}
 .lbinfo .v-good{color:#6ea8ff} .lbinfo .v-bad{color:#ff8a7e} .lbinfo .v-mid{color:#e3a14d}
@@ -347,6 +347,7 @@ input[type=text]{font:inherit;font-size:16px;background:var(--card);color:var(--
 .ovcard .chip.fit{background:#17233a;color:#6ea8ff}
 .lbsum{font-family:var(--f-num);font-size:34px;font-weight:500;color:#fff}
 .lbbtns{display:flex;gap:8px;width:100%}
+.lbvs{height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:100%}
 .lbbtns .btn{flex:1;margin-top:0!important}
 .ovx{position:absolute;top:8px;right:10px;background:none;border:0;color:#7c818d;font-size:22px;line-height:1;padding:4px 8px}
 .near{width:100%;display:flex;flex-direction:column;font-size:12px;color:var(--ov-ink-2);border-top:1px solid var(--ov-line);padding-top:6px}
@@ -562,7 +563,7 @@ img.complogo.lchip{background:#fff;border-radius:6px;padding:2px 5px;box-sizing:
 
 /* ===== iPad layouts (L: landscape, three columns · P: portrait, two) ===== */
 body.ipadL .wrap{max-width:1240px} body.ipadP .wrap{max-width:1000px}
-.ipgrid{display:grid;gap:14px;flex:1 1 auto!important;min-height:0}
+.ipgrid{display:grid;gap:14px;flex:1 1 auto!important;min-height:0;grid-template-rows:minmax(0,1fr)}
 .ipgrid.ipL{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) minmax(0,1fr)}
 .ipgrid.ipP{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
 .ipgrid.ip2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
@@ -578,7 +579,7 @@ body.ipadL .wrap{max-width:1240px} body.ipadP .wrap{max-width:1000px}
 :is(.ipadL,.ipadP) .dicecol>svg.die{max-height:150px}
 /* phone: if the screen is short, the page scrolls instead of squashing */
 .onepage .wrap{overflow-y:auto;overscroll-behavior:contain}
-body:not(.ipadL):not(.ipadP) .onepage .wrap>.panel.hero,body:not(.ipadL):not(.ipadP).onepage .wrap>.panel.hero{min-height:min(360px,60dvh)}
+@media (max-height:720px){body:not(.ipadL):not(.ipadP) .ctab{display:none}}
 /* dice keep their shape */
 svg.die{aspect-ratio:1/1}
 /* ===== career page ===== */
@@ -992,7 +993,7 @@ const SFX={
 const sfx=(k,...a)=>{try{if(soundOn&&ac())SFX[k](...a)}catch(e){}};
 
 /* ================= state ================= */
-const APP_VER='0.18';
+const APP_VER='0.19';
 let setOpen=false, howOpen=false, quitArm=false;
 let diceFast=(()=>{try{return localStorage.getItem('rpglass-dice')==='fast'}catch(e){return false}})();
 let allSpd=(()=>{try{return localStorage.getItem('rpglass-allspd')||'f'}catch(e){return'f'}})();
@@ -1081,9 +1082,8 @@ function crAttrs(cr){
 }
 const allRolled=cr=>AK.every(k=>cr.rolls[k]);
 /* ================= scouting projection ================= */
-/* from 6,400 simulated careers (0.16): [ovr0 bucket start, median peak, 90th pct peak, All-Star %, MVP %, ring %, Hall of Fame %] */
-const PROJ={nba:[[46,64,68,0,0,8,0],[49,69,73,3,0,7,0],[52,72,77,15,0,15,1],[55,74,79,24,1,20,3],[58,77,82,44,2,34,11],[61,80,85,64,10,41,30],[64,83,88,81,23,56,50],[67,86,90,92,52,75,78],[70,89,92,96,73,84,96]],
-  wnba:[[46,61,63,3,0,0,0],[49,63,67,1,0,16,0],[52,66,70,2,0,14,0],[55,70,74,9,0,22,0],[58,73,77,30,0,29,3],[61,76,80,60,1,43,14],[64,79,83,78,5,54,36],[67,82,85,87,17,63,63],[70,85,89,97,35,78,97]]};
+/* from 4,800 simulated careers (0.19): [ovr0 bucket start, median peak, 90th pct peak, All-Star %, MVP %, ring %, Hall of Fame %] */
+const PROJ={"nba":[[46,65,67,0,0,0,0],[49,67,73,4,0,11,0],[52,71,76,10,0,13,0],[55,74,79,25,0,20,2],[58,77,82,44,3,28,10],[61,81,86,67,11,44,33],[64,83,88,80,26,58,49],[67,86,91,93,49,75,83],[70,89,93,88,69,77,100]],"wnba":[[46,62,66,0,0,0,0],[49,65,71,3,0,19,0],[52,69,73,6,0,16,0],[55,72,75,22,0,32,1],[58,75,78,47,0,42,10],[61,78,82,70,1,50,24],[64,81,84,84,15,59,51],[67,84,88,89,31,75,84],[70,87,90,100,64,86,100]]};
 function projectFor(o,lg){
   const T=PROJ[lg], x=o-1.5;
   let i=0;while(i<T.length-2&&x>=T[i+1][0])i++;
@@ -1553,7 +1553,7 @@ function legacy(H,pos,style,lg){
   pos=pos||S.pos; style=style||S.style; lg=lg||S.lg; const [wr,wa]=LEGW[pos]||[1.2,1.6];
   let sc=0; H.forEach(h=>{const gp=h.gp||0,prod=(h.pts??h.ppg*gp)+wr*(h.reb??h.rpg*gp)+wa*(h.ast??h.apg*gp);
     sc+=1+h.ring*14+(h.cup?2:0)+prod/1000*2;h.aw.forEach(x=>sc+=awLeg(x))});
-  return Math.round(sc*(lg==='wnba'?1.6:1)*((LEGF[lg]||{})[pos+':'+style]||1));
+  return Math.round(sc*(lg==='wnba'?1.55:1)*((LEGF[lg]||{})[pos+':'+style]||1));
 }
 
 const count=(H,re)=>H.reduce((a,h)=>a+h.aw.filter(x=>re.test(x)).length,0);
@@ -1610,6 +1610,7 @@ function summerRoll(r){
   if(age<=22)up=2+Math.floor(r/5);else if(age<=25)up=1+Math.floor(r/6);else if(age<=28)up=Math.floor(r/8);else if(age<=30)up=r>=16?1:0;
   else if(age<=32){up=r>=15?1:0;down=2+(r<8?1:0)}else if(age<=34){down=r>=15?4:6}else down=r>=15?7:9;
   if(r===20)up+=2; if(r===1)down+=1;
+  if(S.lg==='wnba'&&S.hist.length<=2)up+=S.hist.length<=1?2:1;   /* WNBA players enter older: +2 growth in their first summer, +1 in their second */
   const w=weights(S.pos,S.style);
   if(age<=32&&S.attrs[focus]<20)S.attrs[focus]++;
   for(let i=0;i<up;i++){const ks=AK.filter(k=>S.attrs[k]<20);if(!ks.length)break;let tot=ks.reduce((a,k)=>a+w[k]+(k==='iq'&&age>=28?1:0),0),x=rnd()*tot;for(const k of ks){x-=w[k]+(k==='iq'&&age>=28?1:0);if(x<=0){S.attrs[k]++;break}}}
@@ -2296,12 +2297,12 @@ function nearTable(){
 }
 function lbHTML(){
   const s=S.season, st=s.cur, n=st.games.length, done=st.done, i=Math.min(st.mi,n-1);
-  const shownI=st.shown, sh=shownI!=null?st.games[shownI]:null, pend=sh&&sh.injPending;
+  const shownI=st.shown, sh0=shownI!=null?st.games[shownI]:null, pend=sh0&&sh0.injPending, sh=lbRolling&&!pend?null:sh0;
   const boxes=st.games.map((g,j)=>`<span class="wd ${g.r!=null?(g.ok?'W':'L'):''}${g.out?' out':''}${j===st.mi&&!done?' cur':''}" title="${esc(tName(g.opp))}">${g.r!=null?(g.ok?'W':'L'):g.n}<i>${isRival(S.team,g.opp)?SWORDS:g.home?'H':'A'}</i></span>`).join('');
   const om=sh&&!done?sh:st.games[i];
   const head=`<span class="ov-kicker">${esc(st.kicker)} · ${esc(st.title)}</span>
     <div class="ov-title">${done?'Stretch complete':pend?'Down on the floor':`Game ${om.n} · ${om.home?'Home':'Road'}`}</div>
-    ${done?'':vsLine(om.opp,om.home,true)}<div class="lbrec" style="--c:${n<=9?n:Math.ceil(n/2)}">${boxes}</div>`;
+    <div class="lbvs">${done?'':vsLine(om.opp,om.home,true)}</div><div class="lbrec" style="--c:${n<=9?n:Math.ceil(n/2)}">${boxes}</div>`;
   let die='',info='',btn='';
   if(done){
     die=`<div class="lbsum">${st.w}–${st.l}</div>`;
@@ -2474,12 +2475,14 @@ function rollSeries(st,all){
     if(st.done)sfx(st.ok?(st.final?'title':'qual'):(st.final?'finalLoss':'elim'));else{const g=st.games[st.mi-1];sfx(g&&g.ok?'pass':'fail')}
   },all);
 }
+let lbRolling=false;
 function lbRoll(){
   const s=S.season, st=s.cur; if(!st||st.type!=='batch'||st.done)return;
   const i=st.mi, r=d(20), E=evalGame(st,i,r);
+  lbRolling=true; render();   /* show the game being rolled before the die spins */
   const el=document.querySelector('[data-die="lbd"]');
   rollDice([el],20,[r],v=>v===20?'crit':v===1?'fumble':E.ok?'win':'lose',()=>{
-    playGame(st,i,r); save();
+    lbRolling=false; playGame(st,i,r); save();
     const g=st.games[i];
     if(g.injPending){lbAll=false;render();sfx('nat1');return}
     render(); sfx(st.done?'seasonEnd':r===20?'nat20':g.ok?'pass':'fail');
