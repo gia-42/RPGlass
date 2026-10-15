@@ -52,6 +52,27 @@ body{margin:0;overflow-x:clip;background:var(--bg);color:var(--ink);font-family:
 .onepage .wrap{height:100%;min-height:0}
 .onepage .wrap>*{flex:none}
 .onepage .wrap>.panel.hero{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column}
+body.phfit{overflow:hidden} body.phfit #app{height:100%}
+body.phfit.v-game .wrap>.panel:not(.hero){flex:0 1 auto;min-height:64px;overflow-y:auto;overscroll-behavior:contain}
+body.phfit.v-game .wrap>.panel.hero{flex:1 0 var(--heroMin,300px)}
+/* phone: a compact player card so the dice keep their room */
+body.phfit.v-game .sheet{padding-top:12px;padding-bottom:12px}
+body.phfit.v-game .sheet h2{font-size:22px}
+body.phfit.v-game .sheet .depthl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block}
+body.phfit.v-game .sheet .chiprow{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;margin-right:-4px;padding-bottom:1px}
+body.phfit.v-game .sheet .chiprow::-webkit-scrollbar{display:none}
+body.phfit.v-game .sheet .chiprow>*{flex:none;white-space:nowrap}
+body.phfit.v-game .sheet .who .stack{min-width:0}
+body.phfit.v-game .sheet .bars{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:8px}
+body.phfit.v-game .sheet .bars .fb-head{flex-direction:column;align-items:flex-start;gap:0}
+body.phfit.v-game .sheet .bars .fb-state{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+body.phfit.v-game .sheet .bars .lbl{font-size:10px}
+body.phfit.v-game .ctab.nofit{display:none}
+body.phfit.v-game .wrap{gap:10px}
+@media (max-height:760px){body.phfit.v-game .sheet .abil{margin-top:8px} body.phfit.v-game .sheet .ab-cell{padding:2px 1px} body.phfit.v-game .sheet .ab-v{font-size:16px;line-height:1.15}
+  body.phfit.v-game .sheet{padding-top:10px;padding-bottom:10px} body.phfit.v-game .sheet .bars{margin-top:6px} body.phfit.v-game .stage{gap:6px}}
+/* a panel that still has to scroll fades at its edge */
+body.phfit.v-game .wrap>.panel.scrolls{-webkit-mask-image:linear-gradient(#000 calc(100% - 22px),transparent);mask-image:linear-gradient(#000 calc(100% - 22px),transparent)}
 h1,h2,h3{margin:0;text-wrap:balance;letter-spacing:-.015em;font-weight:600;line-height:1.15}
 .lbl{text-transform:uppercase;letter-spacing:.07em;font-size:11px;color:var(--ink-3);font-weight:500}
 .num{font-variant-numeric:tabular-nums}
@@ -316,9 +337,9 @@ input[type=text]{font:inherit;font-size:16px;background:var(--card);color:var(--
 
 /* ===== v2: dice sized by the space they get, game pop-up, series dice, standings ===== */
 .dicecol{flex:1 1 0;min-height:64px;overflow:hidden}
-.dicecol>svg.die{height:100%;width:auto;max-width:none;max-height:128px}
+.dicecol>svg.die{width:var(--dz,96px);height:var(--dz,96px);max-width:none;flex:none}
 .dicecol .side{height:100%;max-height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
-.dicecol .side .die{height:calc(100% - 18px);width:auto;max-width:none;min-height:40px}
+.dicecol .side .die{width:var(--sz,64px);height:var(--sz,64px);max-width:none;flex:none}
 .crest{display:block;flex:none}
 .recline{display:flex;gap:6px;align-items:center;justify-content:center;font-size:13px;color:var(--ink-2)}
 .recline b{font-family:var(--f-num);font-weight:600;color:var(--ink)}
@@ -334,7 +355,7 @@ input[type=text]{font:inherit;font-size:16px;background:var(--card);color:var(--
 .wd.out{border-style:dashed}
 .wd.cur{outline:2px solid #8193ff;outline-offset:1px}
 .lbdie{height:112px;display:flex;align-items:center;justify-content:center;width:100%;cursor:pointer}
-.lbdie .die{height:100%;width:auto;max-width:none}
+.lbdie .die{width:104px;height:104px;max-width:none;flex:none}
 .lbinfo{height:140px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:100%}
 .lbinfo .sum{font-size:12.5px;color:var(--ov-ink-2)} .lbinfo .sum b{color:#9cb0ff}
 .lbinfo .verdict{font-size:20px}
@@ -1075,7 +1096,7 @@ let audioWoke=false;
   if(c.state==='suspended')c.resume()}catch(e){}},{passive:true,capture:true}));
 
 /* ================= state ================= */
-const APP_VER='0.31b';
+const APP_VER='0.32';
 let setOpen=false, howOpen=false, quitArm=false;
 let diceFast=(()=>{try{return localStorage.getItem('rpglass-dice')==='fast'}catch(e){return false}})();
 let allSpd=(()=>{try{return localStorage.getItem('rpglass-allspd')||'f'}catch(e){return'f'}})();
@@ -1595,11 +1616,11 @@ function poEdge(opp,home){const p=clamp(.5+(teamV(S.team)-teamV(opp))*.09+(home=
 function stageMods(st,g){
   const home=g?g.home:st.home, po=isPO(st), m=po?[['Matchup',poEdge((g&&g.opp)||st.opp,home)]]:[['You',youMod()],['Team',teamMod()]];
   /* Clutch counts in clutch moments: Play-In, cup knockouts and any series game that can end the series */
-  /* Clutch counts in a deciding game (Game 3, 5 or 7), and Finals pressure in a Finals game that can end it */
+  /* Clutch counts in any series game that can end it; Finals pressure in every Finals game */
   const dec=st.type==='series'&&st.my===Math.ceil(st.bo/2)-1&&st.op===Math.ceil(st.bo/2)-1, close=st.type==='series'&&(st.my===Math.ceil(st.bo/2)-1||st.op===Math.ceil(st.bo/2)-1);
-  if(dec)m.push(['Clutch',clutchMod()])
-  else if(st.po||st.clutch)m.push(['Clutch',clutchMod()]);
-  if(st.type==='series'&&st.final&&close)m.push(['Pressure',-1]);
+  if(close)m.push(['Clutch',clutchMod()]);
+  else if(st.type!=='series'&&(st.po||st.clutch))m.push(['Clutch',clutchMod()]);
+  if(st.type==='series'&&st.final)m.push(['Pressure',-1]);
   if(st.type==='series'&&st.final&&!out()){const rg=(S.hist||[]).reduce((a,h)=>a+h.ring,0);if(rg)m.push(['Ring experience',1])}
   if((['pf','tw'].includes(S.style)||(S.trait==='lead'&&!po))&&S.role>=3&&!out())m.push(['Teammates',1]);
   if(st.type==='batch'&&!out())(S.season.fx||[]).forEach(f=>{if(f.mod&&(!f.riv||isRival(S.team,(g&&g.opp)||st.opp)))m.push([f.lbl,f.mod])});
@@ -1856,7 +1877,7 @@ function legacy(H,pos,style,lg){
   pos=pos||S.pos; style=style||S.style; lg=lg||S.lg; const [wr,wa]=LEGW[pos]||[1.2,1.6];
   let sc=0; H.forEach(h=>{const gp=h.gp||0,prod=(h.pts??h.ppg*gp)+wr*(h.reb??h.rpg*gp)+wa*(h.ast??h.apg*gp);
     sc+=1+h.ring*14+(h.cup?2:0)+prod/1000*2;h.aw.forEach(x=>sc+=awLeg(x))});
-  return Math.round(sc*(lg==='wnba'?1.55:1)*((LEGF[lg]||{})[pos+':'+style]||1));
+  return Math.round(sc*(lg==='wnba'?1.55*.91:1.07)*((LEGF[lg]||{})[pos+':'+style]||1));
 }
 
 const count=(H,re)=>H.reduce((a,h)=>a+h.aw.filter(x=>re.test(x)).length,0);
@@ -2208,13 +2229,13 @@ function sheet(){
   if(s&&S.phase==='season')fxActive().concat((s.fx||[]).filter(f=>s.cur&&s.cur.type!=='batch')).forEach(f=>chips.push(`<span class="chip ${f.adv>0||f.mod>0||f.pts>1?'adv':f.adv<0||f.mod<0||f.pts<1?'dis':''}">${esc(f.lbl)}</span>`));
   if(S.phase==='season')chips.push(`<button class="chip reqb${S.req?' on':''}" data-act="req" title="${S.req?'Tap to withdraw':'Ask to be traded at the deadline or in the summer'}">${S.req?'Trade requested ×':'Request a trade'}</button>`);
   const tv=effV(), tl=tierOf(tv), tw=clamp((tv-.6)/(5.6-.6)*100,4,100), rw=(S.role+1)/6*100;
-  return `<section class="panel"><div class="who"><div class="stack">
+  return `<section class="panel sheet"><div class="who"><div class="stack">
     <span class="lbl">${S.age} yrs · ${hTxt(S.height)} · ${lg.yl(S.year)}</span>
     <span class="pos"><span class="ab">${S.pos}</span><span class="lbl">${POS[S.pos].nm} · ${esc(styleOf()[1])}</span></span>
     <h2>${esc(S.name)}</h2>
     ${S.team?`<div class="muted clubline">${crest(S.team,15)}<span>${esc(tName(S.team))}</span>${compImg(lg.nm,15)}</div>`:''}
     ${S.team&&rosOf(S.team).length&&S.phase==='season'?`<span class="muted small depthl">${esc(depthTxt())}</span>`:''}
-    ${chips.length?`<div class="row" style="gap:6px">${chips.join('')}</div>`:''}
+    ${chips.length?`<div class="row chiprow" style="gap:6px">${chips.join('')}</div>`:''}
   </div><div class="rating"><div class="big num">${o}</div><div class="lbl">OVR</div></div></div>
   <div class="abil">${AK.map(k=>`<div class="ab-cell${keyset.has(k)?' key':''}"><span class="lbl" title="${AN[k]}">${A3[k]}</span><span class="ab-v num">${S.attrs[k]}</span></div>`).join('')}</div>
   ${S.team?`<div class="bars">
@@ -3019,9 +3040,28 @@ function overlay(){
 
 let ipMode='', cvMetric='ovr';
 function calcIpad(){try{const w=innerWidth,h=innerHeight;return (w>=1000&&h>=600&&w>h)?'L':(w>=740&&h>=860&&h>w)?'P':''}catch(e){return''}}
+/* dice take the size of their box, in pixels */
+function fitDice(){document.querySelectorAll('.dicecol').forEach(dc=>{const h=dc.clientHeight,w=dc.clientWidth;if(!h||!w)return;
+  const side=dc.querySelectorAll('.side').length;
+  if(side){const n=side,sz=Math.max(36,Math.min(84,h-22,(w-14*(n-1))/n-6));dc.style.setProperty('--sz',Math.floor(sz)+'px')}
+  else dc.style.setProperty('--dz',Math.floor(Math.max(48,Math.min(128,h-6,w-8)))+'px')})}
+/* phones: the page is exactly the visible screen; panels scroll inside it */
+document.addEventListener('scroll',e=>{const p=e.target;if(p&&p.classList&&p.classList.contains('panel'))p.classList.toggle('scrolls',p.scrollHeight>p.clientHeight+2&&p.scrollTop+p.clientHeight<p.scrollHeight-2)},{capture:true,passive:true});
+function fitPhone(){const w=document.querySelector('.wrap');if(!w)return;document.body.classList.toggle('phfit',!ipMode);
+  if(ipMode){w.style.height='';return}
+  const vh=window.visualViewport?visualViewport.height:innerHeight;w.style.height=Math.floor(vh)+'px';
+  const hm=Math.round(vh<620?282:Math.min(330,Math.max(220,vh*.42)));document.body.style.setProperty('--heroMin',hm+'px');
+  /* the mini standings only show when all of them fit */
+  const t=w.querySelector('.ctab'),sh=w.querySelector('.sheet');if(!sh)return;if(t)t.classList.remove('nofit');
+  const gap=parseFloat(getComputedStyle(w).rowGap)||12,used=[...w.children].filter(e=>e!==t&&!e.classList.contains('hero')).reduce((a,e)=>a+e.scrollHeight+gap,0)+parseFloat(getComputedStyle(w).paddingTop)+parseFloat(getComputedStyle(w).paddingBottom);
+  if(t&&used+t.scrollHeight+gap+hm>vh)t.classList.add('nofit');
+  /* the dice panel gets what its content needs (a series shows four dice and two buttons) */
+  const hero=w.querySelector(':scope>.panel.hero');if(hero&&hero.scrollHeight>hero.clientHeight+1){const hdr=w.firstElementChild.getBoundingClientRect().height,need=Math.min(hero.scrollHeight+2,vh-hdr-150);if(need>hm){document.body.style.setProperty('--heroMin',Math.round(need)+'px');if(t)t.classList.add('nofit')}}
+  requestAnimationFrame(()=>w.querySelectorAll(':scope>.panel').forEach(p=>p.classList.toggle('scrolls',p.scrollHeight>p.clientHeight+2&&p.scrollTop+p.clientHeight<p.scrollHeight-2)))}
 function fitGrid(){const g=document.querySelector('.ipgrid');if(!g)return;const w=document.querySelector('.wrap'),pb=parseFloat(getComputedStyle(w).paddingBottom)||0;
   const vh=window.visualViewport?visualViewport.height:innerHeight;g.style.height=Math.max(240,Math.floor(vh-g.getBoundingClientRect().top-pb))+'px'}
-addEventListener('resize',()=>{if(calcIpad()!==ipMode)render();else fitGrid()});
+addEventListener('resize',()=>{if(calcIpad()!==ipMode)render();else{fitPhone();if(ipMode)fitGrid();fitDice()}});
+if(window.visualViewport)visualViewport.addEventListener('resize',()=>{fitPhone();if(ipMode)fitGrid();fitDice()});
 addEventListener('orientationchange',()=>setTimeout(()=>{ipMode=calcIpad();render()},250));
 function render(){
   try{rosIds()}catch(e){}
@@ -3032,7 +3072,8 @@ function render(){
   const hadOv=!!app.querySelector('.ovl'), ovKey=app.querySelector('.ovl .ovcard')?.className||'';
   app.innerHTML=`<div class="wrap">${header()}${body}</div>${overlay()}`;
   const nov=app.querySelector('.ovl'); if(nov&&hadOv&&(nov.querySelector('.ovcard')?.className||'')===ovKey)nov.classList.add('still');
-  if(ipMode)fitGrid();
+  document.body.classList.toggle('v-game',body===undefined?false:view==='game'||S.phase==='create');
+  fitPhone(); if(ipMode)fitGrid(); fitDice();
   const cs=app.querySelector('.ctab-s'),mr=cs&&cs.querySelector('tr.me');if(cs&&mr)cs.scrollTop=Math.max(0,mr.offsetTop-cs.clientHeight/2+mr.offsetHeight/2);
   if(hadFocus){const n=document.getElementById('pname');if(n){n.focus();n.setSelectionRange(n.value.length,n.value.length)}}
 }
