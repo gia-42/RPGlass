@@ -1061,7 +1061,7 @@ function ac(){if(!soundOn)return null;try{if(!actx){const C=window.AudioContext|
   const lp=actx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=3800;lp.Q.value=.4;
   master=actx.createGain();master.gain.value=.16;master.connect(lp);lp.connect(comp);comp.connect(actx.destination)}
   if(actx.state==='suspended')actx.resume();
-  try{if(navigator.audioSession&&navigator.audioSession.type!=='playback')navigator.audioSession.type='playback'}catch(e){}
+  try{if(navigator.audioSession&&navigator.audioSession.type!=='ambient')navigator.audioSession.type='ambient'}catch(e){}
   return actx}catch(e){return null}}
 function tone(f,t0,dur,o={}){const c=actx,os=c.createOscillator(),g=c.createGain(),vol=o.vol??.15;os.type=o.type||'sine';os.frequency.setValueAtTime(f,t0);if(o.f2)os.frequency.exponentialRampToValueAtTime(o.f2,t0+dur);
   g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(vol,t0+(o.a||.006));g.gain.exponentialRampToValueAtTime(.0001,t0+dur);os.connect(g);g.connect(master);os.start(t0);os.stop(t0+dur+.03)}
@@ -1088,8 +1088,9 @@ const SFX={
   click(){const t=actx.currentTime;tone(820,t,.03,{vol:.025,f2:560,a:.002})}
 };
 const sfx=(k,...a)=>{try{if(soundOn&&ac())SFX[k](...a)}catch(e){}};
-/* iPhone and iPad: let the game's sounds play with the silent switch on (iOS 17+), and unlock audio on the first tap */
-try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
+/* iPhone and iPad: the game's sounds mix with whatever music or video is already playing instead of pausing it,
+   and audio unlocks on the first tap ('ambient' follows the ring/silent switch: on silent, the game stays quiet) */
+try{if(navigator.audioSession)navigator.audioSession.type='ambient'}catch(e){}
 let audioWoke=false;
 ['touchend','click','keydown'].forEach(ev=>document.addEventListener(ev,()=>{try{if(!soundOn)return;const c=ac();if(!c)return;
   if(!audioWoke){audioWoke=true;const b=c.createBuffer(1,1,22050),src=c.createBufferSource();src.buffer=b;src.connect(c.destination);src.start(0)}
